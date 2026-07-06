@@ -10,15 +10,16 @@
 
 ## 模板
 
-`.pi/agents/templates/` 下有六个操作模板：
+`.pi/agents/templates/` 下有七个操作模板：
 - `add-api.md` — 新增后端 API
 - `add-db-table.md` — 新增数据库表 + Entity + Mapper
 - `add-page.md` — 新增前端页面
 - `add-feature.md` — 新增完整功能（跨前后端+数据库）
 - `refactor-service.md` — 重构 Service 层
 - `fix-bug.md` — 修复 Bug 的排查和改动流程
+- `acceptance-checklist.md` — 验收清单模板（改动完成后必须填写）
 
-新增功能时参考对应模板。
+新增功能时参考对应模板。改动完成后，按 `acceptance-checklist.md` 逐项验收。
 
 ## 项目速览
 
@@ -28,4 +29,4 @@
 | 前端 | Vue 3 + Element Plus，端口 9876 |
 | 数据库 | MySQL 8.0，库名 springboot-vue，脚本在 `sql/springboot-vue.sql` |
 | 部署 | Docker Compose |
-| 运行 | `./dev.sh docker-up` / `./dev.sh docker-down` |
+| 验证 | `./dev.sh verify` 冒烟 / `./dev.sh verify-full` 完整验收 |

@@ -39,7 +39,9 @@ defaultContext: fresh
 
 1. 后端编译通过: `mvn package -f SpringBoot/pom.xml -q`
 2. 前端编译通过: `cd vue && npm run build 2>&1 | tail -5`
-3. 如果有 Docker Compose, 运行 `./dev.sh verify` 校验核心流程
+3. 核心冒烟测试: `./dev.sh verify`
+4. 完整验收（含错误路径+权限边界）: `./dev.sh verify-full`
+5. **验收清单**: 改动完成后，读取并填写 `.pi/agents/templates/acceptance-checklist.md` 的每一项。编译通过+verify 过+清单填完才算"改动完成"。
 
 ### 禁止事项
 

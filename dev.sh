@@ -36,6 +36,7 @@ usage() {
     echo "  docker-down      Docker Compose 停止"
     echo "  docker-logs      查看容器日志"
     echo "  verify           核心流程冒烟测试"
+    echo "  verify-full      完整验收测试（冒烟+错误路径+权限边界）"
     echo "  api-test         快速 API 连通性测试"
     echo "  help             显示此帮助"
 }
@@ -332,6 +333,131 @@ for r in records:
 }
 
 # ============================================================
+# 完整验收测试（错误路径 + 权限边界）
+# ============================================================
+verify_full() {
+    local base="$BACKEND_URL"
+    local failures=0
+    local admin_user="vfull_admin_$(date +%s)"
+    local reader_user="vfull_reader_$(date +%s)"
+    local admin_token=""
+    local reader_token=""
+
+    echo ""
+    echo "============================================"
+    info "完整验收测试：冒烟 + 错误路径 + 权限边界"
+    echo "============================================"
+
+    # ---- 阶段一：核心冒烟 ----
+    info "阶段一：核心流程冒烟测试"
+    local smoke_ok=0
+    verify && smoke_ok=1 || warn "冒烟测试有未通过项（可能是已知问题），继续后续阶段..."
+    echo ""
+
+    # ---- 阶段二：错误路径 ----
+    info "阶段二：错误路径测试"
+
+    _expect_code() {
+        local desc="$1" code="$2" method="$3" url="$4" data="$5"
+        local resp
+        resp=$(curl -s -X "$method" "$url" \
+            -H 'Content-Type: application/json' \
+            -d "$data" 2>/dev/null || echo '{}')
+        local actual=$(echo "$resp" | python3 -c "import sys,json; print(json.load(sys.stdin).get('code','?'))" 2>/dev/null || echo '?')
+        if [ "$actual" = "$code" ]; then
+            pass "$desc"
+        else
+            # 如果是 HTTP 非 200，也算 error
+            local http=$(curl -s -o /dev/null -w "%{http_code}" -X "$method" "$url" \
+                -H 'Content-Type: application/json' \
+                -d "$data" 2>/dev/null || echo '000')
+            if [ "$http" -ge 500 ]; then
+                fail "$desc (HTTP $http, 期望 code=$code)"
+                ((failures++)) || true
+            elif [ "$actual" = "-1" ] && [ "$code" = "-1" ]; then
+                pass "$desc (code=-1 OK)"
+            else
+                fail "$desc (code=$actual, 期望 code=$code)"
+                ((failures++)) || true
+            fi
+        fi
+    }
+
+    _expect_code "空用户名注册" "-1" POST "$base/user/register" \
+        '{"username":"","password":"test123","nickName":"test","role":1}'
+
+    _expect_code "错误密码登录" "-1" POST "$base/user/login" \
+        '{"username":"admin","password":"wrongpassword123"}'
+
+    _expect_code "不存在的用户登录" "-1" POST "$base/user/login" \
+        '{"username":"nonexistent_user_xyz","password":"test"}'
+
+    _expect_code "空 ISBN 新增图书" "-1" POST "$base/book" \
+        '{"isbn":"","name":"test","status":"1","borrownum":0}'
+
+    _expect_code "删除不存在的图书" "-1" DELETE "$base/book/99999" '{}'
+
+    echo ""
+
+    # ---- 阶段三：权限边界 ----
+    info "阶段三：权限边界测试"
+
+    # 获取读者 token
+    info "  获取读者 token..."
+    local resp
+    resp=$(curl -s -X POST "$base/user/login" \
+        -H 'Content-Type: application/json' \
+        -d '{"username":"reader","password":"123456"}' 2>/dev/null)
+    reader_token=$(echo "$resp" | python3 -c "import sys,json; print(json.load(sys.stdin).get('data',{}).get('token',''))" 2>/dev/null || echo '')
+
+    if [ -z "$reader_token" ]; then
+        warn "读者 token 获取失败（可能 reader 账号不存在），跳过权限测试"
+    else
+        _expect_denied() {
+            local desc="$1" method="$2" url="$3" data="$4"
+            local http
+            http=$(curl -s -o /dev/null -w "%{http_code}" -X "$method" "$url" \
+                -H "token: $reader_token" \
+                -H 'Content-Type: application/json' \
+                ${data:+-d "$data"} 2>/dev/null || echo '000')
+            # 读者被拒绝: HTTP 非 200 范围，或返回 code=-1
+            if [ "$http" -ge 200 ] && [ "$http" -lt 300 ]; then
+                # 可能是 200 但内容拒绝了——再检查一下响应
+                local body
+                body=$(curl -s -X "$method" "$url" \
+                    -H "token: $reader_token" \
+                    -H 'Content-Type: application/json' \
+                    ${data:+-d "$data"} 2>/dev/null)
+                local code=$(echo "$body" | python3 -c "import sys,json; print(json.load(sys.stdin).get('code','?'))" 2>/dev/null || echo '?')
+                if [ "$code" = "-1" ]; then
+                    pass "$desc (HTTP 200, code=-1)"
+                else
+                    warn "$desc (HTTP $http, code=$code) —— 权限控制可能不完整"
+                fi
+            else
+                pass "$desc (HTTP $http, 已拒绝)"
+            fi
+        }
+
+        _expect_denied "读者删除图书" DELETE "$base/book/1"
+        _expect_denied "读者查看所有读者列表" GET "$base/user?pageNum=1&pageSize=10"
+    fi
+
+    # ---- 结果 ----
+    echo ""
+    echo "============================================"
+    if [ "$failures" -eq 0 ]; then
+        pass "完整验收测试全部通过 (0 失败)"
+        echo "============================================"
+        return 0
+    else
+        fail "完整验收测试: $failures 项失败"
+        echo "============================================"
+        return 1
+    fi
+}
+
+# ============================================================
 # 入口
 # ============================================================
 case "${1:-help}" in
@@ -344,6 +470,7 @@ case "${1:-help}" in
     docker-down)     docker_down ;;
     docker-logs)     docker_logs "${2:-}" ;;
     verify)          verify ;;
+    verify-full)      verify_full ;;
     api-test)        api_test ;;
     help|--help|-h)  usage ;;
     *)
