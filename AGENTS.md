@@ -10,10 +10,13 @@
 
 ## 模板
 
-`.pi/agents/templates/` 下有三个操作模板：
+`.pi/agents/templates/` 下有六个操作模板：
 - `add-api.md` — 新增后端 API
+- `add-db-table.md` — 新增数据库表 + Entity + Mapper
 - `add-page.md` — 新增前端页面
+- `add-feature.md` — 新增完整功能（跨前后端+数据库）
 - `refactor-service.md` — 重构 Service 层
+- `fix-bug.md` — 修复 Bug 的排查和改动流程
 
 新增功能时参考对应模板。
 
