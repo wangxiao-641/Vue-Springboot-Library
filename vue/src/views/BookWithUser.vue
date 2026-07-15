@@ -188,17 +188,12 @@ export default {
       })
     },
     handlereProlong(row){
-      var nowDate = new Date(row.deadtime);
-      nowDate.setDate(nowDate.getDate()+30);
-      row.deadtime = moment(nowDate).format("yyyy-MM-DD HH:mm:ss");
-      row.prolong = row.prolong -1;
-      request.post("/bookwithuser",row).then(res =>{
-        console.log(res)
-        if(res.code == 0){
-          ElMessage({
-            message: '续借成功',
-            type: 'success',
-          })
+      request.post("/api/renew", {
+        readerId: this.user.id,
+        isbn: row.isbn
+      }).then(res =>{
+        if(res.code == "0"){
+          ElMessage.success('续借成功')
         }
         else {
           ElMessage.error(res.msg)

@@ -10,6 +10,7 @@ import com.example.demo.LoginUser;
 import com.example.demo.commom.Result;
 import com.example.demo.entity.BookWithUser;
 import com.example.demo.entity.User;
+import com.example.demo.mapper.BookWithUserMapper;
 import com.example.demo.mapper.UserMapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.jdbc.Null;
@@ -27,6 +28,9 @@ import java.util.Map;
 public class UserController {
     @Resource
     UserMapper userMapper;
+
+    @Resource
+    BookWithUserMapper bookWithUserMapper;
     @PostMapping("/register")
     public Result<?> register(@RequestBody User user){
         User res = userMapper.selectOne(Wrappers.<User>lambdaQuery().eq(User::getUsername,user.getUsername()));
@@ -53,9 +57,15 @@ public class UserController {
     }
     @PostMapping
     public Result<?> save(@RequestBody User user){
+        User res = userMapper.selectOne(Wrappers.<User>lambdaQuery().eq(User::getUsername,user.getUsername()));
+        if(res != null)
+        {
+            return Result.error("-1","用户名已存在");
+        }
         if(user.getPassword() == null){
             user.setPassword("abc123456");
         }
+        user.setRole(2);
         userMapper.insert(user);
         return Result.success();
     }
@@ -81,6 +91,11 @@ public class UserController {
     }
     @DeleteMapping("/{id}")
     public Result<?> delete(@PathVariable Long id){
+        Integer count = bookWithUserMapper.selectCount(
+                Wrappers.<BookWithUser>lambdaQuery().eq(BookWithUser::getId, id));
+        if (count != null && count > 0) {
+            return Result.error("-1", "该读者有未归还图书，无法删除");
+        }
         userMapper.deleteById(id);
         return Result.success();
     }

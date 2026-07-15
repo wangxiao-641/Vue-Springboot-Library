@@ -63,10 +63,12 @@
       <el-table-column prop="author" label="作者" />
       <el-table-column prop="publisher" label="出版社" />
       <el-table-column prop="createTime" label="出版时间" sortable/>
-      <el-table-column prop="status" label="状态">
+      <el-table-column prop="total" label="馆藏总数" sortable width="100" />
+      <el-table-column prop="available" label="可借数量" sortable width="100">
         <template v-slot="scope">
-          <el-tag v-if="scope.row.status == 0" type="warning">已借阅</el-tag>
-          <el-tag v-else type="success">未借阅</el-tag>
+          <span :style="{ color: scope.row.available === 0 ? 'red' : 'green', fontWeight: 'bold' }">
+            {{ scope.row.available }}
+          </span>
         </template>
       </el-table-column>
       <el-table-column fixed="right" label="操作" >
@@ -77,10 +79,10 @@
               <el-button type="danger" size="mini" >删除</el-button>
             </template>
           </el-popconfirm>
-          <el-button  size="mini" @click ="handlelend(scope.row.id,scope.row.isbn,scope.row.name,scope.row.borrownum)" v-if="user.role == 2" :disabled="scope.row.status == 0">借阅</el-button>
-          <el-popconfirm title="确认还书?" @confirm="handlereturn(scope.row.id,scope.row.isbn,scope.row.borrownum)" v-if="user.role == 2" :disabled="scope.row.status == 1">
+          <el-button  size="mini" @click ="handlelend(scope.row.id,scope.row.isbn,scope.row.name,scope.row.borrownum)" v-if="user.role == 2" :disabled="scope.row.available == 0">借阅</el-button>
+          <el-popconfirm title="确认还书?" @confirm="handlereturn(scope.row.id,scope.row.isbn,scope.row.borrownum)" v-if="user.role == 2">
             <template #reference>
-              <el-button type="danger" size="mini" :disabled="(this.isbnArray.indexOf(scope.row.isbn)) == -1 ||scope.row.status == 1" >还书</el-button>
+              <el-button type="danger" size="mini" :disabled="(this.isbnArray.indexOf(scope.row.isbn)) == -1" >还书</el-button>
             </template>
           </el-popconfirm>
         </template>
@@ -144,6 +146,9 @@
               <el-date-picker value-format="YYYY-MM-DD" type="date" style="width: 80%" clearable v-model="form.createTime" ></el-date-picker>
             </div>
           </el-form-item>
+          <el-form-item label="馆藏总数">
+            <el-input-number style="width: 80%" v-model="form.total" :min="1" :max="999" />
+          </el-form-item>
         </el-form>
         <template #footer>
       <span class="dialog-footer">
@@ -175,6 +180,9 @@
             <div>
               <el-date-picker value-format="YYYY-MM-DD" type="date" style="width: 80%" clearable v-model="form.createTime" ></el-date-picker>
             </div>
+          </el-form-item>
+          <el-form-item label="馆藏总数">
+            <el-input-number style="width: 80%" v-model="form.total" :min="1" :max="999" />
           </el-form-item>
         </el-form>
         <template #footer>
@@ -289,75 +297,18 @@ export default {
       })
     },
     handlereturn(id,isbn,bn){
-      // (this.isbnArray.indexOf(scope.row.isbn)) == -1
-      // for(let i=0; i<this.numOfOutDataBook; i++){
-      //   if(this.outDateBook[i].isbn == isbn){
-      //     this.numOfOutDataBook = this.numOfOutDataBook -1;
-      //     console.log("in handlereturn: " + this.numOfOutDataBook);
-      //     break;
-      //   }
-      // }
-      this.form.status = "1"
-      this.form.id = id
-      request.put("/book",this.form).then(res =>{
-        console.log(res)
-        if(res.code == 0){
-          ElMessage({
-            message: '还书成功',
-            type: 'success',
-          })
+      request.post("/api/return", {
+        readerId: this.user.id,
+        isbn: isbn
+      }).then(res =>{
+        if(res.code == "0"){
+          ElMessage.success('还书成功')
         }
         else {
           ElMessage.error(res.msg)
         }
-      //
-        this.form3.isbn = isbn
-        this.form3.readerId = this.user.id
-        let endDate = moment(new Date()).format("yyyy-MM-DD HH:mm:ss")
-        this.form3.returnTime = endDate
-        this.form3.status = "1"
-        console.log(bn)
-        this.form3.borrownum = bn
-        request.put("/LendRecord1/",this.form3).then(res =>{
-          console.log(res)
-          let form3 ={};
-          form3.isbn = isbn;
-          form3.bookName = name;
-          form3.nickName = this.user.username;
-          form3.id = this.user.id;
-          form3.lendtime = endDate;
-          form3.deadtime = endDate;
-          form3.prolong  = 1;
-          request.post("/bookwithuser/deleteRecord",form3).then(res =>{
-            console.log(res)
-            this.load()
-          })
-
-        })
-      //
+        this.load()
       })
-      // this.form3.isbn = isbn
-      // this.form3.readerId = this.user.id
-      // let endDate = moment(new Date()).format("yyyy-MM-DD HH:mm:ss")
-      // this.form3.returnTime = endDate
-      // this.form3.status = "1"
-      // console.log(bn)
-      // this.form3.borrownum = bn
-      // request.put("/LendRecord1/",this.form3).then(res =>{
-      //   console.log(res)
-      // })
-      // let form3 ={};
-      // form3.isbn = isbn;
-      // form3.bookName = name;
-      // form3.nickName = this.user.username;
-      // form3.id = this.user.id;
-      // form3.lendtime = endDate;
-      // form3.deadtime = endDate;
-      // form3.prolong  = 1;
-      // request.post("/bookwithuser/deleteRecord",form3).then(res =>{
-      //   console.log(res)
-      //   this.load()
-      // })
     },
     handlelend(id,isbn,name,bn){
       if(this.number ==5){
@@ -368,50 +319,16 @@ export default {
         ElMessage.warning("在您归还逾期书籍前不能再借阅书籍")
         return;
       }
-      this.form.status = "0"
-      this.form.id = id
-      this.form.borrownum = bn+1
-      console.log(bn)
-      request.put("/book",this.form).then(res =>{
-        console.log(res)
-        if(res.code == 0){
-          ElMessage({
-            message: '借阅成功',
-            type: 'success',
-          })
+      request.post("/api/borrow", {
+        readerId: this.user.id,
+        isbn: isbn
+      }).then(res =>{
+        if(res.code == "0"){
+          ElMessage.success('借阅成功')
         }
         else {
           ElMessage.error(res.msg)
         }
-      })
-
-      this.form2.status = "0"
-      this.form2.isbn = isbn
-      this.form2.bookname = name
-      this.form2.readerId = this.user.id
-      this.form2.borrownum = bn+1
-      console.log(this.form2.borrownum)
-      console.log(this.user)
-      let startDate = moment(new Date()).format("yyyy-MM-DD HH:mm:ss");
-      this.form2.lendTime = startDate
-      console.log(this.user)
-      request.post("/LendRecord",this.form2).then(res =>{
-        console.log(res)
-        this.load();
-
-      })
-      let form3 ={};
-      form3.isbn = isbn;
-      form3.bookName = name;
-      form3.nickName = this.user.username;
-      form3.id = this.user.id;
-      form3.lendtime = startDate;
-      let nowDate = new Date(startDate);
-      nowDate.setDate(nowDate.getDate()+30);
-      form3.deadtime = moment(nowDate).format("yyyy-MM-DD HH:mm:ss");
-      form3.prolong  = 1;
-      request.post("/bookwithuser/insertNew",form3).then(res =>{
-        console.log(res)
         this.load()
       })
     },
@@ -441,8 +358,7 @@ export default {
         })
       }
       else {
-        this.form.borrownum = 0
-        this.form.status = 1
+        // total/available/borrownum 由后端设置
         request.post("/book",this.form).then(res =>{
           console.log(res)
           if(res.code == 0){

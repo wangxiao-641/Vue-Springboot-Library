@@ -34,6 +34,7 @@
     </div>
     <!-- 按钮-->
     <div style="margin: 10px 0;" >
+      <el-button type="primary" size="mini" @click="handleAdd" v-if="user.role == 1">新增用户</el-button>
       <el-popconfirm title="确认删除?" @confirm="deleteBatch" v-if="user.role == 1">
         <template #reference>
           <el-button type="danger" size="mini" >批量删除</el-button>
@@ -101,6 +102,38 @@
       <span class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="save">确 定</el-button>
+      </span>
+        </template>
+      </el-dialog>
+
+      <el-dialog v-model="dialogVisible3" title="新增读者" width="30%">
+        <el-form :model="form3" label-width="120px">
+          <el-form-item label="用户名">
+            <el-input style="width: 80%" v-model="form3.username"></el-input>
+          </el-form-item>
+          <el-form-item label="密码">
+            <el-input style="width: 80%" v-model="form3.password" show-password></el-input>
+          </el-form-item>
+          <el-form-item label="姓名">
+            <el-input style="width: 80%" v-model="form3.nickName"></el-input>
+          </el-form-item>
+          <el-form-item label="电话号码">
+            <el-input style="width: 80%" v-model="form3.phone"></el-input>
+          </el-form-item>
+          <el-form-item label="性别">
+            <div>
+              <el-radio v-model="form3.sex" label="男">男</el-radio>
+              <el-radio v-model="form3.sex" label="女">女</el-radio>
+            </div>
+          </el-form-item>
+          <el-form-item label="地址">
+            <el-input type="textarea" style="width: 80%" v-model="form3.address"></el-input>
+          </el-form-item>
+        </el-form>
+        <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="dialogVisible3 = false">取 消</el-button>
+        <el-button type="primary" @click="saveUser">确 定</el-button>
       </span>
         </template>
       </el-dialog>
@@ -219,6 +252,22 @@ export default {
       this.form = JSON.parse(JSON.stringify(row))
       this.dialogVisible = true
     },
+    handleAdd(){
+      this.form3 = {}
+      this.dialogVisible3 = true
+    },
+    saveUser(){
+      request.post("/user", this.form3).then(res =>{
+        if(res.code == "0"){
+          ElMessage.success('新增读者成功')
+          this.load()
+          this.dialogVisible3 = false
+        }
+        else {
+          ElMessage.error(res.msg)
+        }
+      })
+    },
     handleSizeChange(pageSize){
       this.pageSize = pageSize
       this.load()
@@ -231,7 +280,9 @@ export default {
   data() {
     return {
       form: {},
+      form3: {},
       dialogVisible : false,
+      dialogVisible3 : false,
       search1:'',
       search2:'',
       search3:'',
