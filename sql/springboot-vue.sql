@@ -31,18 +31,20 @@ CREATE TABLE `book`  (
   `create_time` date NULL DEFAULT NULL COMMENT '出版时间',
   `status` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '0：未归还 1：已归还',
   `borrownum` int(0) NOT NULL COMMENT '此书被借阅次数',
+  `total_count` int(0) NOT NULL DEFAULT 1 COMMENT '馆藏总数',
+  `available_count` int(0) NOT NULL DEFAULT 1 COMMENT '可借数量',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of book
 -- ----------------------------
-INSERT INTO `book` VALUES (9, '12341541321', '十万个为什么', 15.00, '小王', '宁波大学出版社', '2014-12-16', '1', 7);
-INSERT INTO `book` VALUES (10, '2312315132131', '五万个为什么', NULL, NULL, NULL, NULL, '1', 3);
-INSERT INTO `book` VALUES (11, '25213121232', '一万个为什么', NULL, NULL, NULL, NULL, '1', 5);
-INSERT INTO `book` VALUES (12, '3213123123', '操作系统', NULL, NULL, NULL, NULL, '0', 8);
-INSERT INTO `book` VALUES (13, '345621212321', '伊索寓言', NULL, NULL, NULL, NULL, '0', 9);
-INSERT INTO `book` VALUES (15, '54112312321', '格林童话', NULL, NULL, NULL, NULL, '1', 1);
+INSERT INTO `book` VALUES (9, '12341541321', '十万个为什么', 15.00, '小王', '宁波大学出版社', '2014-12-16', '1', 7, 1, 1);
+INSERT INTO `book` VALUES (10, '2312315132131', '五万个为什么', NULL, NULL, NULL, NULL, '1', 3, 1, 1);
+INSERT INTO `book` VALUES (11, '25213121232', '一万个为什么', NULL, NULL, NULL, NULL, '1', 5, 1, 1);
+INSERT INTO `book` VALUES (12, '3213123123', '操作系统', NULL, NULL, NULL, NULL, '0', 8, 1, 0);
+INSERT INTO `book` VALUES (13, '345621212321', '伊索寓言', NULL, NULL, NULL, NULL, '0', 9, 1, 0);
+INSERT INTO `book` VALUES (15, '54112312321', '格林童话', NULL, NULL, NULL, NULL, '1', 1, 1, 1);
 
 -- ----------------------------
 -- Table structure for bookwithuser

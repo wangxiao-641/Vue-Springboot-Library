@@ -62,6 +62,8 @@
       <el-table-column prop="price" label="价格" sortable/>
       <el-table-column prop="author" label="作者" />
       <el-table-column prop="publisher" label="出版社" />
+      <el-table-column prop="totalCount" label="馆藏总数" sortable />
+      <el-table-column prop="availableCount" label="可借数量" sortable />
       <el-table-column prop="createTime" label="出版时间" sortable/>
       <el-table-column prop="status" label="状态">
         <template v-slot="scope">
@@ -77,8 +79,8 @@
               <el-button type="danger" size="mini" >删除</el-button>
             </template>
           </el-popconfirm>
-          <el-button  size="mini" @click ="handlelend(scope.row.id,scope.row.isbn,scope.row.name,scope.row.borrownum)" v-if="user.role == 2" :disabled="scope.row.status == 0">借阅</el-button>
-          <el-popconfirm title="确认还书?" @confirm="handlereturn(scope.row.id,scope.row.isbn,scope.row.borrownum)" v-if="user.role == 2" :disabled="scope.row.status == 1">
+          <el-button  size="mini" @click ="handlelend(scope.row.id,scope.row.isbn,scope.row.name,scope.row.borrownum,scope.row.availableCount)" v-if="user.role == 2" :disabled="scope.row.availableCount == 0">借阅</el-button>
+          <el-popconfirm title="确认还书?" @confirm="handlereturn(scope.row.id,scope.row.isbn,scope.row.borrownum,scope.row.availableCount)" v-if="user.role == 2" :disabled="scope.row.status == 1">
             <template #reference>
               <el-button type="danger" size="mini" :disabled="(this.isbnArray.indexOf(scope.row.isbn)) == -1 ||scope.row.status == 1" >还书</el-button>
             </template>
@@ -144,6 +146,9 @@
               <el-date-picker value-format="YYYY-MM-DD" type="date" style="width: 80%" clearable v-model="form.createTime" ></el-date-picker>
             </div>
           </el-form-item>
+          <el-form-item label="馆藏总数">
+            <el-input-number style="width: 80%" v-model="form.totalCount" :min="1" :max="999" />
+          </el-form-item>
         </el-form>
         <template #footer>
       <span class="dialog-footer">
@@ -175,6 +180,9 @@
             <div>
               <el-date-picker value-format="YYYY-MM-DD" type="date" style="width: 80%" clearable v-model="form.createTime" ></el-date-picker>
             </div>
+          </el-form-item>
+          <el-form-item label="馆藏总数">
+            <el-input-number style="width: 80%" v-model="form.totalCount" :min="1" :max="999" />
           </el-form-item>
         </el-form>
         <template #footer>
@@ -288,7 +296,7 @@ export default {
         this.load()
       })
     },
-    handlereturn(id,isbn,bn){
+    handlereturn(id,isbn,bn,availableCount){
       // (this.isbnArray.indexOf(scope.row.isbn)) == -1
       // for(let i=0; i<this.numOfOutDataBook; i++){
       //   if(this.outDateBook[i].isbn == isbn){
@@ -297,8 +305,8 @@ export default {
       //     break;
       //   }
       // }
-      this.form.status = "1"
       this.form.id = id
+      this.form.availableCount = availableCount + 1
       request.put("/book",this.form).then(res =>{
         console.log(res)
         if(res.code == 0){
@@ -359,7 +367,7 @@ export default {
       //   this.load()
       // })
     },
-    handlelend(id,isbn,name,bn){
+    handlelend(id,isbn,name,bn,availableCount){
       if(this.number ==5){
         ElMessage.warning("您不能再借阅更多的书籍了")
         return;
@@ -368,9 +376,9 @@ export default {
         ElMessage.warning("在您归还逾期书籍前不能再借阅书籍")
         return;
       }
-      this.form.status = "0"
       this.form.id = id
       this.form.borrownum = bn+1
+      this.form.availableCount = availableCount - 1
       console.log(bn)
       request.put("/book",this.form).then(res =>{
         console.log(res)
@@ -431,18 +439,17 @@ export default {
               message: '修改书籍信息成功',
               type: 'success',
             })
+            this.load()
+            this.dialogVisible2 = false
           }
           else {
             ElMessage.error(res.msg)
           }
-
-          this.load()
-          this.dialogVisible2 = false
         })
       }
       else {
-        this.form.borrownum = 0
-        this.form.status = 1
+        this.form.totalCount = this.form.totalCount || 1
+        this.form.availableCount = this.form.totalCount
         request.post("/book",this.form).then(res =>{
           console.log(res)
           if(res.code == 0){
