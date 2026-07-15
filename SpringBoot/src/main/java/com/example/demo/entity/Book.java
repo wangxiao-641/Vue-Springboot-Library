@@ -28,6 +28,8 @@ public class Book {
     private String publisher;
     @JsonFormat(locale="zh",timezone="GMT+8", pattern="yyyy-MM-dd")
     private Date createTime;
+    private Integer totalCount;
+    private Integer availableCount;
     private String status;
 
 

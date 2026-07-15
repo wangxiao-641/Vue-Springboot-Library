@@ -20,11 +20,40 @@ public class BookController {
 
     @PostMapping
     public Result<?> save(@RequestBody Book Book){
+        if(Book.getTotalCount() == null){
+            Book.setTotalCount(1);
+        }
+        if(Book.getAvailableCount() == null){
+            Book.setAvailableCount(Book.getTotalCount());
+        }
+        if(Book.getBorrownum() == null){
+            Book.setBorrownum(0);
+        }
+        Book.setStatus("1");
         BookMapper.insert(Book);
         return Result.success();
     }
     @PutMapping
     public  Result<?> update(@RequestBody Book Book){
+        Book dbBook = BookMapper.selectById(Book.getId());
+        if(dbBook != null && Book.getTotalCount() != null && !Book.getTotalCount().equals(dbBook.getTotalCount())){
+            // 馆藏总数不得小于当前已借出数量
+            int borrowedCount = dbBook.getTotalCount() - dbBook.getAvailableCount();
+            if(Book.getTotalCount() < borrowedCount){
+                return Result.error("-1", "馆藏总数不得小于当前已借出数量");
+            }
+        }
+        // 如果修改了availableCount，校验不小于0
+        if(Book.getAvailableCount() != null){
+            if(Book.getAvailableCount() < 0){
+                return Result.error("-1", "可借数量不足");
+            }
+            if(Book.getAvailableCount() == 0){
+                Book.setStatus("0");
+            } else {
+                Book.setStatus("1");
+            }
+        }
         BookMapper.updateById(Book);
         return Result.success();
     }
