@@ -229,7 +229,7 @@ verify() {
     info "5. 管理员新增图书: $test_book_isbn"
     resp=$(curl -s -X POST "$base/book" \
         -H 'Content-Type: application/json' \
-        -d "{\"isbn\":\"$test_book_isbn\",\"name\":\"冒烟测试图书\",\"price\":29.90,\"author\":\"测试作者\",\"publisher\":\"测试出版社\",\"status\":\"1\",\"borrownum\":0}" 2>/dev/null)
+        -d "{\"isbn\":\"$test_book_isbn\",\"name\":\"冒烟测试图书\",\"price\":29.90,\"author\":\"测试作者\",\"publisher\":\"测试出版社\",\"status\":\"1\",\"borrownum\":0,\"totalCount\":1}" 2>/dev/null)
     local book_id=""
     if echo "$resp" | grep -q '"code":"0"'; then
         pass "图书新增成功"
@@ -419,7 +419,7 @@ verify_full() {
         warn "读者 token 获取失败（可能 reader 账号不存在），跳过权限测试"
     else
         _expect_denied() {
-            local desc="$1" method="$2" url="$3" data="$4"
+            local desc="$1" method="$2" url="$3" data="${4:-}"
             local http
             http=$(curl -s -o /dev/null -w "%{http_code}" -X "$method" "$url" \
                 -H "token: $reader_token" \

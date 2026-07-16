@@ -33,7 +33,10 @@ CREATE TABLE `book`  (
   `borrownum` int(0) NOT NULL COMMENT '此书被借阅次数',
   `total_count` int(0) NOT NULL DEFAULT 1 COMMENT '馆藏总数',
   `available_count` int(0) NOT NULL DEFAULT 1 COMMENT '可借数量',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_book_isbn`(`isbn`) USING BTREE,
+  CONSTRAINT `chk_book_total_count_positive` CHECK (`total_count` > 0),
+  CONSTRAINT `chk_book_available_count_range` CHECK (`available_count` >= 0 AND `available_count` <= `total_count`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -51,22 +54,24 @@ INSERT INTO `book` VALUES (15, '54112312321', '格林童话', NULL, NULL, NULL, 
 -- ----------------------------
 DROP TABLE IF EXISTS `bookwithuser`;
 CREATE TABLE `bookwithuser`  (
+  `borrow_id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '当前借阅ID',
   `id` bigint(0) NOT NULL COMMENT '读者id',
-  `isbn` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '图书编号',
+  `isbn` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '图书编号',
   `book_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '图书名',
   `nick_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '读者姓名',
   `lendtime` datetime(0) NULL DEFAULT NULL COMMENT '借阅时间',
   `deadtime` datetime(0) NULL DEFAULT NULL COMMENT '应归还时间',
   `prolong` int(0) NULL DEFAULT NULL COMMENT '续借次数',
-  PRIMARY KEY (`book_name`) USING BTREE,
-  INDEX `id`(`id`) USING BTREE
+  PRIMARY KEY (`borrow_id`) USING BTREE,
+  UNIQUE INDEX `uk_bookwithuser_reader_isbn`(`id`, `isbn`) USING BTREE,
+  INDEX `idx_bookwithuser_isbn`(`isbn`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of bookwithuser
 -- ----------------------------
-INSERT INTO `bookwithuser` VALUES (14, '345621212321', '伊索寓言', '123456', '2021-12-22 17:30:48', '2022-02-20 17:30:48', 0);
-INSERT INTO `bookwithuser` VALUES (14, '3213123123', '操作系统', '123456', '2021-10-12 17:30:42', '2021-12-14 17:30:42', 1);
+INSERT INTO `bookwithuser` (`id`, `isbn`, `book_name`, `nick_name`, `lendtime`, `deadtime`, `prolong`) VALUES (14, '345621212321', '伊索寓言', '123456', '2021-12-22 17:30:48', '2022-02-20 17:30:48', 0);
+INSERT INTO `bookwithuser` (`id`, `isbn`, `book_name`, `nick_name`, `lendtime`, `deadtime`, `prolong`) VALUES (14, '3213123123', '操作系统', '123456', '2021-10-12 17:30:42', '2021-12-14 17:30:42', 1);
 
 -- ----------------------------
 -- Table structure for lend_record
@@ -152,6 +157,5 @@ CREATE TABLE `user`  (
   `role` int(0) NOT NULL COMMENT '角色、1：管理员 2：普通用户',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户信息表' ROW_FORMAT = Dynamic;
-
 
 

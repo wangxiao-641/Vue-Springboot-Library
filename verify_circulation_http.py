@@ -129,7 +129,6 @@ def setup():
         "publisher": "circulation-test",
         "borrownum": 0,
         "totalCount": 1,
-        "availableCount": 1,
     })
     if status != 200 or not expect_code_zero(resp):
         raise AssertionError("create book failed: {} {}".format(status, resp))

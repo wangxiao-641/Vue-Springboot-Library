@@ -164,18 +164,12 @@ public class CirculationService {
     }
 
     private void markBookBorrowed(Book book, int nextBorrownum) {
-        if (book.getAvailableCount() != null) {
-            if (book.getAvailableCount() <= 0) {
-                throw new CirculationException("可借数量不足");
-            }
-            book.setAvailableCount(book.getAvailableCount() - 1);
-            book.setStatus(book.getAvailableCount() <= 0 ? BOOK_UNAVAILABLE : BOOK_AVAILABLE);
-        } else {
-            if (!BOOK_AVAILABLE.equals(book.getStatus())) {
-                throw new CirculationException("图书不可借");
-            }
-            book.setStatus(BOOK_UNAVAILABLE);
+        validateInventory(book);
+        if (book.getAvailableCount() <= 0) {
+            throw new CirculationException("可借数量不足");
         }
+        book.setAvailableCount(book.getAvailableCount() - 1);
+        book.setStatus(book.getAvailableCount() <= 0 ? BOOK_UNAVAILABLE : BOOK_AVAILABLE);
         book.setBorrownum(nextBorrownum);
         if (bookMapper.updateById(book) != 1) {
             throw new CirculationException("图书库存更新失败");
@@ -183,20 +177,23 @@ public class CirculationService {
     }
 
     private void markBookReturned(Book book) {
-        if (book.getAvailableCount() != null) {
-            if (book.getTotalCount() != null && book.getAvailableCount() >= book.getTotalCount()) {
-                throw new CirculationException("图书库存状态异常，不能重复还书");
-            }
-            book.setAvailableCount(book.getAvailableCount() + 1);
-            book.setStatus(book.getAvailableCount() > 0 ? BOOK_AVAILABLE : BOOK_UNAVAILABLE);
-        } else {
-            if (!BOOK_UNAVAILABLE.equals(book.getStatus())) {
-                throw new CirculationException("图书状态不是已借出，不能重复还书");
-            }
-            book.setStatus(BOOK_AVAILABLE);
+        validateInventory(book);
+        if (book.getAvailableCount() >= book.getTotalCount()) {
+            throw new CirculationException("图书库存状态异常，不能重复还书");
         }
+        book.setAvailableCount(book.getAvailableCount() + 1);
+        book.setStatus(book.getAvailableCount() > 0 ? BOOK_AVAILABLE : BOOK_UNAVAILABLE);
         if (bookMapper.updateById(book) != 1) {
             throw new CirculationException("图书库存更新失败");
+        }
+    }
+
+    private void validateInventory(Book book) {
+        if (book.getTotalCount() == null || book.getAvailableCount() == null) {
+            throw new CirculationException("图书库存数量缺失");
+        }
+        if (book.getTotalCount() <= 0 || book.getAvailableCount() < 0 || book.getAvailableCount() > book.getTotalCount()) {
+            throw new CirculationException("图书库存状态异常");
         }
     }
 

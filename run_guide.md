@@ -60,6 +60,14 @@ mysql -uroot -p < sql/springboot-vue.sql
 
 执行命令后会提示输入 MySQL 密码。
 
+如果是在已有数据库上升级本次库存数量需求，需要执行迁移脚本：
+
+```powershell
+mysql -uroot -p springboot-vue < sql/migrations/20260716_inventory_counts.sql
+```
+
+该脚本会为 `book.isbn` 添加唯一索引，为 `book.total_count` / `book.available_count` 添加合法范围约束，并把 `bookwithuser` 从 `book_name` 主键迁移为 `borrow_id` 技术主键 + `(id, isbn)` 唯一约束。执行 ALTER 前会强制校验重复 ISBN、重复/孤立当前借阅、库存与当前借阅/未归还记录一致性以及已迁移/部分迁移结构；发现问题会直接中止并提示需要清理的数据类型。
+
 ## 4. 修改后端数据库配置
 
 后端配置文件位于：
@@ -224,6 +232,12 @@ curl -s -X POST "http://localhost:9090/circulation/borrow" \
 
 后端会校验图书是否存在、库存是否充足、读者是否存在、当前是否已借该书，并统一扣减库存、生成当前借阅和借阅历史，应还日期为借书时间后 30 天，续借次数初始化为 1。
 
+图书新增和编辑库存规则：
+
+- `POST /book` 必须提交正整数 `totalCount`，不能提交 `availableCount`；后端会把 `availableCount` 初始化为 `totalCount`。
+- `PUT /book` 修改馆藏总数时不能提交 `availableCount`；后端按“当前已借出数 = 旧总数 - 旧可借数”重算新可借数量。
+- 新馆藏总数小于当前已借出数时，接口返回 `code=-1`，图书字段不变化。
+
 ### 10.2 还书
 
 ```bash
@@ -284,9 +298,44 @@ BACKEND_URL=http://localhost:9090 ./verify_circulation_http.py
 
 清理说明：脚本结束时会通过 HTTP 删除本次创建的当前借阅、借阅历史、测试图书和测试读者。若后端中途不可用，脚本会输出 `CLEANUP WARN`，可按输出中的唯一 ISBN 或用户名在系统里定位残留测试数据。
 
-## 12. 常见问题
+## 12. 库存数量黑盒验证脚本
 
-### 12.1 Maven 命令无法识别
+脚本文件：
+
+```text
+verify_inventory_http.py
+```
+
+默认验证本机 9090：
+
+```bash
+./verify_inventory_http.py
+```
+
+指定后端地址：
+
+```bash
+BACKEND_URL=http://localhost:9090 ./verify_inventory_http.py
+```
+
+脚本只通过 HTTP 调用后端接口，不直接连接或修改数据库。它会自动创建两个唯一读者和一本唯一图书，逐项输出 `PASS` 或 `FAIL`，任一用例失败时返回非零退出码。
+
+覆盖用例：
+
+1. 新增馆藏总数为 1 的图书后，总数为 1、可借为 1，伪造 `availableCount` 被拒绝。
+2. 读者 A 借阅成功后可借数量变为 0。
+3. 读者 B 在库存为 0 时借阅失败，图书、当前借阅、借阅历史均不变化。
+4. 读者 A 归还后可借数量恢复为 1。
+5. 已有 1 本借出时，管理员把馆藏总数改为 0 失败且数据不变化。
+6. 管理员把馆藏总数合法改为 3 后，可借数量按已借出数调整为 2。
+7. 扩大馆藏后，并发执行馆藏编辑和同一读者两次借阅：编辑成功、借阅恰好一次成功一次失败；不同读者可同时持有同一 ISBN，同一读者不会产生重复当前借阅或未归还记录。
+8. 刷新查询后，总数和可借数量仍正确；清理失败或清理后仍有测试数据时脚本返回非零退出码。
+
+清理说明：脚本结束时会通过 HTTP 删除本次创建的当前借阅、借阅历史、测试图书和测试读者。若后端中途不可用，脚本会输出 `CLEANUP WARN`，可按输出中的唯一 ISBN 或用户名在系统里定位残留测试数据。
+
+## 13. 常见问题
+
+### 13.1 Maven 命令无法识别
 
 说明 Maven 没有安装，或者没有配置环境变量。
 
@@ -298,7 +347,7 @@ mvn -version
 
 如果命令失败，需要重新安装 Maven，或将 Maven 的 `bin` 目录加入系统 `Path`。
 
-### 12.2 后端启动失败，提示数据库连接错误
+### 13.2 后端启动失败，提示数据库连接错误
 
 重点检查：
 
@@ -315,7 +364,7 @@ Access denied for user 'root'@'localhost'
 
 通常说明数据库用户名或密码不正确。
 
-### 12.3 后端启动失败，提示 Public Key Retrieval is not allowed
+### 13.3 后端启动失败，提示 Public Key Retrieval is not allowed
 
 可以检查 JDBC URL 中是否包含：
 
@@ -329,7 +378,7 @@ allowPublicKeyRetrieval=true
 spring.datasource.url=jdbc:mysql://localhost:3306/springboot-vue?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=GMT%2b8
 ```
 
-### 12.4 前端 npm install 失败
+### 13.4 前端 npm install 失败
 
 可以尝试：
 
@@ -339,7 +388,7 @@ npm install --legacy-peer-deps
 
 如果依赖版本冲突，优先使用上面的命令。
 
-### 10.5 前端页面能打开，但接口请求失败
+### 13.5 前端页面能打开，但接口请求失败
 
 检查后端是否已经启动。
 
@@ -351,7 +400,7 @@ http://127.0.0.1:9090/
 
 同时检查前端代理配置 `vue/vue.config.js` 中是否代理到正确端口。
 
-### 10.6 登录失败
+### 13.6 登录失败
 
 可能原因：
 
@@ -361,7 +410,7 @@ http://127.0.0.1:9090/
 
 可以先在数据库中确认 `user` 表是否有账号数据。
 
-## 11. 运行成功标志
+## 14. 运行成功标志
 
 当以下条件都满足时，说明项目运行成功：
 

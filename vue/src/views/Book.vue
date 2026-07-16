@@ -147,7 +147,7 @@
             </div>
           </el-form-item>
           <el-form-item label="馆藏总数">
-            <el-input-number style="width: 80%" v-model="form.totalCount" :min="1" :max="999" />
+            <el-input-number style="width: 80%" v-model="form.totalCount" :min="1" :max="999" :precision="0" :step="1" />
           </el-form-item>
         </el-form>
         <template #footer>
@@ -182,12 +182,15 @@
             </div>
           </el-form-item>
           <el-form-item label="馆藏总数">
-            <el-input-number style="width: 80%" v-model="form.totalCount" :min="1" :max="999" />
+            <el-input-number style="width: 80%" v-model="form.totalCount" :min="1" :max="999" :precision="0" :step="1" />
+          </el-form-item>
+          <el-form-item label="可借数量">
+            <el-input style="width: 80%" v-model="form.availableCount" disabled></el-input>
           </el-form-item>
         </el-form>
         <template #footer>
       <span class="dialog-footer">
-        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button @click="dialogVisible2 = false">取 消</el-button>
         <el-button type="primary" @click="save">确 定</el-button>
       </span>
         </template>
@@ -344,11 +347,14 @@ export default {
       this.form ={}
     },
     save(){
-      //ES6语法
-      //地址,但是？IP与端口？+请求参数
-      // this.form?这是自动保存在form中的，虽然显示时没有使用，但是这个对象中是有它的
+      if(!Number.isInteger(this.form.totalCount) || this.form.totalCount <= 0){
+        ElMessage.error("馆藏总数必须为正整数")
+        return
+      }
+      const payload = JSON.parse(JSON.stringify(this.form))
+      delete payload.availableCount
       if(this.form.id){
-        request.put("/book",this.form).then(res =>{
+        request.put("/book",payload).then(res =>{
           console.log(res)
           if(res.code == 0){
             ElMessage({
@@ -364,18 +370,16 @@ export default {
         })
       }
       else {
-        this.form.totalCount = this.form.totalCount || 1
-        this.form.availableCount = this.form.totalCount
-        request.post("/book",this.form).then(res =>{
+        request.post("/book",payload).then(res =>{
           console.log(res)
           if(res.code == 0){
             ElMessage.success('上架书籍成功')
+            this.load()
+            this.dialogVisible = false
           }
           else {
             ElMessage.error(res.msg)
           }
-          this.load()
-          this.dialogVisible = false
         })
       }
 
