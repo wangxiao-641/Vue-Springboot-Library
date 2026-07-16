@@ -64,9 +64,22 @@ mysql -uroot -p < sql/springboot-vue.sql
 
 ```powershell
 mysql -uroot -p springboot-vue < sql/migrations/20260716_inventory_counts.sql
+mysql -uroot -p springboot-vue < sql/migrations/20260716_overdue_management.sql
 ```
 
-该脚本会为 `book.isbn` 添加唯一索引，为 `book.total_count` / `book.available_count` 添加合法范围约束，并把 `bookwithuser` 从 `book_name` 主键迁移为 `borrow_id` 技术主键 + `(id, isbn)` 唯一约束。执行 ALTER 前会强制校验重复 ISBN、重复/孤立当前借阅、库存与当前借阅/未归还记录一致性以及已迁移/部分迁移结构；发现问题会直接中止并提示需要清理的数据类型。
+库存迁移脚本会为 `book.isbn` 添加唯一索引，为 `book.total_count` / `book.available_count` 添加合法范围约束，并把 `bookwithuser` 从 `book_name` 主键迁移为 `borrow_id` 技术主键 + `(id, isbn)` 唯一约束。执行 ALTER 前会强制校验重复 ISBN、重复/孤立当前借阅、库存与当前借阅/未归还记录一致性以及已迁移/部分迁移结构；发现问题会直接中止并提示需要清理的数据类型。
+
+逾期迁移脚本会先检查 `bookwithuser.deadtime`：发现任意 NULL 当前借阅时使用 `SIGNAL` 明确中止，不执行后续 ALTER；数据完整时将该字段改为 `NOT NULL`，并幂等添加逾期筛选索引。整个脚本可重复执行。新数据库直接导入基线 SQL 时已包含 `NOT NULL` 约束和索引。
+
+如果迁移报告 `deadtime 为 NULL`，可先定位需要业务纠正的记录：
+
+```sql
+SELECT borrow_id, id, isbn, book_name, lendtime
+FROM bookwithuser
+WHERE deadtime IS NULL;
+```
+
+必须逐条确认真实应还日期并完成数据纠正后再重跑迁移；脚本不会用当前时间或其他含糊默认值填充历史 NULL。
 
 ## 4. 修改后端数据库配置
 
@@ -218,11 +231,46 @@ VALUES ('reader', '123456', '读者', '13900000000', '女', '学校', 2);
 9. 执行还书。
 10. 再次查看图书状态是否恢复为可借。
 
-## 10. 借书、还书、续借后端业务接口
+## 10. 逾期管理规则与接口
+
+- 借书请求只提交 `{readerId, isbn}`；借书时间和应还时间均由后端生成，应还时间为借书时间后 30 个日历日。
+- 业务时区固定为 `Asia/Shanghai`。应还日早于今天时计为逾期；今天到期不逾期；距应还日 0–3 天为“即将到期”。
+- `GET /bookwithuser` 和 `GET /LendRecord` 均支持 `overdueOnly=true`，当前未还记录响应中包含 `dueStatus`、`dueStatusText`、`overdueDays`。
+- 借阅者存在任意逾期未还图书时，`POST /circulation/borrow` 拒绝新借阅。`POST /circulation/renew` 拒绝续借已逾期的目标图书。归还逾期图书后限制自动解除。
+- 旧 `POST /bookwithuser` 任意更新和 `/insertNew` 任意新增已被拒绝，避免绕过业务规则。
+
+管理员纠正应还日期使用专用接口，只允许修改当前借阅的 `deadtime`：
+
+```http
+PUT /bookwithuser/due-date
+Content-Type: application/json
+
+{
+  "operatorId": 1,
+  "borrowId": 123,
+  "dueDate": "2026-07-15 12:00:00"
+}
+```
+
+`operatorId` 必须对应 `role=1` 的管理员，`dueDate` 必须为上海本地时间格式 `yyyy-MM-dd HH:mm:ss`。
+
+## 11. 纯 HTTP 黑盒验收
+
+只需 Python 3 标准库，不直连数据库，不需联网安装依赖：
+
+```bash
+BACKEND_URL=http://localhost:9090 ./verify_circulation_http.py
+BACKEND_URL=http://localhost:9090 ./verify_inventory_http.py
+BACKEND_URL=http://localhost:9090 ./verify_overdue_http.py
+```
+
+`verify_overdue_http.py` 使用唯一的管理员、读者和两本测试图书，通过专用 HTTP 接口将应还日调整为昨天，覆盖全部逾期限制和解除流程。每项输出 `PASS` / `FAIL`，任一失败返回非零退出码；脚本结束时通过 HTTP 归还并删除测试记录、图书和账号。
+
+## 12. 借书、还书、续借后端业务接口
 
 借书、还书、续借已经收敛为三个后端事务接口。前端点击一次业务按钮时，只发送一个业务写请求，列表刷新请求不计入。请求体只传读者和图书标识，不传库存、状态、借阅时间、应还时间或续借后的日期。
 
-### 10.1 借书
+### 12.1 借书
 
 ```bash
 curl -s -X POST "http://localhost:9090/circulation/borrow" \
@@ -238,7 +286,7 @@ curl -s -X POST "http://localhost:9090/circulation/borrow" \
 - `PUT /book` 修改馆藏总数时不能提交 `availableCount`；后端按“当前已借出数 = 旧总数 - 旧可借数”重算新可借数量。
 - 新馆藏总数小于当前已借出数时，接口返回 `code=-1`，图书字段不变化。
 
-### 10.2 还书
+### 12.2 还书
 
 ```bash
 curl -s -X POST "http://localhost:9090/circulation/return" \
@@ -248,7 +296,7 @@ curl -s -X POST "http://localhost:9090/circulation/return" \
 
 后端会校验当前借阅和未归还历史是否存在，并在一个事务内更新历史记录为已归还、删除当前借阅、恢复可借数量。重复还书会失败，库存不会再次增加。
 
-### 10.3 续借
+### 12.3 续借
 
 ```bash
 curl -s -X POST "http://localhost:9090/circulation/renew" \
@@ -258,7 +306,7 @@ curl -s -X POST "http://localhost:9090/circulation/renew" \
 
 后端会校验当前借阅和剩余续借次数。最多续借 1 次，成功后应还日期延长 30 天且剩余续借次数变为 0；第二次续借失败，应还日期不变化。
 
-## 11. 借还续黑盒验证脚本
+## 13. 借还续黑盒验证脚本
 
 脚本文件：
 
@@ -298,7 +346,7 @@ BACKEND_URL=http://localhost:9090 ./verify_circulation_http.py
 
 清理说明：脚本结束时会通过 HTTP 删除本次创建的当前借阅、借阅历史、测试图书和测试读者。若后端中途不可用，脚本会输出 `CLEANUP WARN`，可按输出中的唯一 ISBN 或用户名在系统里定位残留测试数据。
 
-## 12. 库存数量黑盒验证脚本
+## 14. 库存数量黑盒验证脚本
 
 脚本文件：
 
@@ -333,9 +381,9 @@ BACKEND_URL=http://localhost:9090 ./verify_inventory_http.py
 
 清理说明：脚本结束时会通过 HTTP 删除本次创建的当前借阅、借阅历史、测试图书和测试读者。若后端中途不可用，脚本会输出 `CLEANUP WARN`，可按输出中的唯一 ISBN 或用户名在系统里定位残留测试数据。
 
-## 13. 常见问题
+## 15. 常见问题
 
-### 13.1 Maven 命令无法识别
+### 15.1 Maven 命令无法识别
 
 说明 Maven 没有安装，或者没有配置环境变量。
 
@@ -347,7 +395,7 @@ mvn -version
 
 如果命令失败，需要重新安装 Maven，或将 Maven 的 `bin` 目录加入系统 `Path`。
 
-### 13.2 后端启动失败，提示数据库连接错误
+### 15.2 后端启动失败，提示数据库连接错误
 
 重点检查：
 
@@ -364,7 +412,7 @@ Access denied for user 'root'@'localhost'
 
 通常说明数据库用户名或密码不正确。
 
-### 13.3 后端启动失败，提示 Public Key Retrieval is not allowed
+### 15.3 后端启动失败，提示 Public Key Retrieval is not allowed
 
 可以检查 JDBC URL 中是否包含：
 
@@ -378,7 +426,7 @@ allowPublicKeyRetrieval=true
 spring.datasource.url=jdbc:mysql://localhost:3306/springboot-vue?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=GMT%2b8
 ```
 
-### 13.4 前端 npm install 失败
+### 15.4 前端 npm install 失败
 
 可以尝试：
 
@@ -388,7 +436,7 @@ npm install --legacy-peer-deps
 
 如果依赖版本冲突，优先使用上面的命令。
 
-### 13.5 前端页面能打开，但接口请求失败
+### 15.5 前端页面能打开，但接口请求失败
 
 检查后端是否已经启动。
 
@@ -400,7 +448,7 @@ http://127.0.0.1:9090/
 
 同时检查前端代理配置 `vue/vue.config.js` 中是否代理到正确端口。
 
-### 13.6 登录失败
+### 15.6 登录失败
 
 可能原因：
 
@@ -410,7 +458,7 @@ http://127.0.0.1:9090/
 
 可以先在数据库中确认 `user` 表是否有账号数据。
 
-## 14. 运行成功标志
+## 16. 运行成功标志
 
 当以下条件都满足时，说明项目运行成功：
 

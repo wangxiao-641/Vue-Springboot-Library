@@ -60,11 +60,12 @@ CREATE TABLE `bookwithuser`  (
   `book_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '图书名',
   `nick_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '读者姓名',
   `lendtime` datetime(0) NULL DEFAULT NULL COMMENT '借阅时间',
-  `deadtime` datetime(0) NULL DEFAULT NULL COMMENT '应归还时间',
+  `deadtime` datetime(0) NOT NULL COMMENT '应归还时间',
   `prolong` int(0) NULL DEFAULT NULL COMMENT '续借次数',
   PRIMARY KEY (`borrow_id`) USING BTREE,
   UNIQUE INDEX `uk_bookwithuser_reader_isbn`(`id`, `isbn`) USING BTREE,
-  INDEX `idx_bookwithuser_isbn`(`isbn`) USING BTREE
+  INDEX `idx_bookwithuser_isbn`(`isbn`) USING BTREE,
+  INDEX `idx_bookwithuser_deadtime`(`deadtime`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -157,5 +158,3 @@ CREATE TABLE `user`  (
   `role` int(0) NOT NULL COMMENT '角色、1：管理员 2：普通用户',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户信息表' ROW_FORMAT = Dynamic;
-
-

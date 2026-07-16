@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -22,4 +23,10 @@ public class BookWithUser {
     @JsonFormat(locale="zh",timezone="GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
     private Date deadtime;
     private Integer prolong;
+    @TableField(exist = false)
+    private String dueStatus;
+    @TableField(exist = false)
+    private String dueStatusText;
+    @TableField(exist = false)
+    private Long overdueDays;
 }

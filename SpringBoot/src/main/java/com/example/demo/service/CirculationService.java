@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class CirculationService {
@@ -34,15 +34,21 @@ public class CirculationService {
     private LendRecordMapper lendRecordMapper;
     @Resource
     private UserMapper userMapper;
+    @Resource
+    private LoanStatusService loanStatusService;
 
     @Transactional(rollbackFor = Exception.class)
     public void borrowBook(CirculationRequest request) {
         validateRequest(request);
-        Book book = getBookForUpdate(request.getIsbn());
         User reader = getReader(request.getReaderId());
-        if (findCurrentBorrow(request.getReaderId(), request.getIsbn()) != null) {
+        List<BookWithUser> readerBorrows = bookWithUserMapper.selectByReaderIdForUpdate(request.getReaderId());
+        if (readerBorrows.stream().anyMatch(current -> loanStatusService.isOverdue(current.getDeadtime()))) {
+            throw new CirculationException("存在逾期未还图书，归还后才能借新书");
+        }
+        if (readerBorrows.stream().anyMatch(current -> request.getIsbn().equals(current.getIsbn()))) {
             throw new CirculationException("当前读者已借阅该图书");
         }
+        Book book = getBookForUpdate(request.getIsbn());
         if (findOpenLendRecord(request.getReaderId(), request.getIsbn()) != null) {
             throw new CirculationException("该图书存在未归还记录");
         }
@@ -50,7 +56,7 @@ public class CirculationService {
         int nextBorrownum = book.getBorrownum() == null ? 1 : book.getBorrownum() + 1;
         markBookBorrowed(book, nextBorrownum);
 
-        Date lendTime = new Date();
+        Date lendTime = loanStatusService.now();
         LendRecord lendRecord = new LendRecord();
         lendRecord.setReaderId(request.getReaderId());
         lendRecord.setIsbn(book.getIsbn());
@@ -68,7 +74,7 @@ public class CirculationService {
         current.setBookName(book.getName());
         current.setNickName(readerName(reader));
         current.setLendtime(lendTime);
-        current.setDeadtime(addDays(lendTime, BORROW_DAYS));
+        current.setDeadtime(loanStatusService.addCalendarDays(lendTime, BORROW_DAYS));
         current.setProlong(INITIAL_RENEW_TIMES);
         if (bookWithUserMapper.insert(current) != 1) {
             throw new CirculationException("当前借阅写入失败");
@@ -89,7 +95,7 @@ public class CirculationService {
         }
 
         LendRecord returnedRecord = new LendRecord();
-        returnedRecord.setReturnTime(new Date());
+        returnedRecord.setReturnTime(loanStatusService.now());
         returnedRecord.setStatus(LEND_RETURNED);
         UpdateWrapper<LendRecord> lendUpdate = new UpdateWrapper<>();
         lendUpdate.eq("reader_id", request.getReaderId())
@@ -116,13 +122,19 @@ public class CirculationService {
         if (current == null) {
             throw new CirculationException("未找到当前借阅，不能续借");
         }
+        if (loanStatusService.isOverdue(current.getDeadtime())) {
+            throw new CirculationException("该图书已逾期，不能续借");
+        }
         if (current.getProlong() == null || current.getProlong() <= 0) {
             throw new CirculationException("该图书已无可续借次数");
         }
 
         BookWithUser update = new BookWithUser();
-        Date baseDeadtime = current.getDeadtime() == null ? new Date() : current.getDeadtime();
-        update.setDeadtime(addDays(baseDeadtime, BORROW_DAYS));
+        Date baseDeadtime = current.getDeadtime();
+        if (baseDeadtime == null) {
+            throw new CirculationException("当前借阅缺少应还日期");
+        }
+        update.setDeadtime(loanStatusService.addCalendarDays(baseDeadtime, BORROW_DAYS));
         update.setProlong(current.getProlong() - 1);
         UpdateWrapper<BookWithUser> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("id", request.getReaderId())
@@ -195,13 +207,6 @@ public class CirculationService {
         if (book.getTotalCount() <= 0 || book.getAvailableCount() < 0 || book.getAvailableCount() > book.getTotalCount()) {
             throw new CirculationException("图书库存状态异常");
         }
-    }
-
-    private Date addDays(Date date, int days) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(date);
-        calendar.add(Calendar.DATE, days);
-        return calendar.getTime();
     }
 
     private String readerName(User reader) {

@@ -34,7 +34,8 @@ SpringBoot/src/main/java/com/example/demo/
 │   ├── CirculationController.java         # 借书/还书/续借事务业务接口
 │   └── DashboardController.java           # 展示板统计
 ├── dto/
-│   └── CirculationRequest.java            # 流通业务请求 {readerId, isbn}
+│   ├── CirculationRequest.java            # 流通业务请求 {readerId, isbn}
+│   └── DueDateAdjustmentRequest.java      # 应还日期纠正 {operatorId, borrowId, dueDate}
 ├── entity/
 │   ├── User.java                          # 对应 user 表
 │   ├── Book.java                          # 对应 book 表
@@ -47,7 +48,9 @@ SpringBoot/src/main/java/com/example/demo/
 │   └── BookWithUserMapper.java            # extends BaseMapper<BookWithUser>
 ├── service/
 │   ├── CirculationService.java            # @Transactional 流通业务逻辑
-│   └── CirculationException.java          # 流通业务异常
+│   ├── CirculationException.java          # 流通业务异常
+│   ├── LoanStatusService.java             # 上海时区逾期边界与状态计算
+│   └── DueDateAdjustmentService.java      # 管理员应还日期业务纠正
 └── utils/
     └── TokenUtils.java                    # JWT Token 生成
 ```
@@ -86,6 +89,7 @@ vue/src/
 | 文件 | 作用 |
 |------|------|
 | `sql/springboot-vue.sql` | 数据库建表+初始数据 |
+| `sql/migrations/20260716_overdue_management.sql` | 已有数据库的应还日期非空约束与筛选索引迁移 |
 | `SpringBoot/pom.xml` | Maven 依赖 |
 | `vue/vue.config.js` | Vue CLI 配置（含 /api 代理到 localhost:9090） |
 | `docker-compose.yml` | 全栈容器部署 |
@@ -124,7 +128,7 @@ vue/src/
 | 方法 | 路径 | 功能 |
 |------|------|------|
 | POST | /LendRecord | 新增借阅记录 |
-| GET | /LendRecord | 分页查询 |
+| GET | /LendRecord | 分页查询；`overdueOnly=true` 筛选逾期未还并附带应还日期/状态/逾期天数 |
 | DELETE | /LendRecord/{readerId}/{isbn}/{borrownum} | 删除 |
 | POST | /LendRecord/deleteBatch | 批量删除 |
 | GET | /LendRecord/status | 查询归还状态的记录 |
@@ -139,11 +143,12 @@ vue/src/
 
 | 方法 | 路径 | 功能 |
 |------|------|------|
-| POST | /bookwithuser/insertNew | 新增当前借阅 |
-| GET | /bookwithuser | 分页查询 |
+| POST | /bookwithuser/insertNew | 已拒绝直写，当前借阅只能通过借书业务接口创建 |
+| GET | /bookwithuser | 分页查询；返回 `dueStatus`/`dueStatusText`/`overdueDays`，支持 `overdueOnly=true` |
 | POST | /bookwithuser/deleteRecord | 删除一条当前借阅 |
 | POST | /bookwithuser/deleteRecords | 批量删除当前借阅 |
-| POST | /bookwithuser | 更新当前借阅 |
+| POST | /bookwithuser | 已拒绝任意字段直写 |
+| PUT | /bookwithuser/due-date | 管理员专用应还日期纠正；body: `{operatorId, borrowId, dueDate}` |
 
 ### CirculationController (`/circulation`)
 
@@ -154,6 +159,8 @@ vue/src/
 | POST | /circulation/renew | 续借事务业务接口 | `{readerId, isbn}` |
 
 说明：三个接口只接收读者和图书标识。后端统一校验库存、当前借阅、未归还记录和续借次数，并在同一事务内更新 `book`、`bookwithuser`、`lend_record`。前端页面点击借书、还书、续借时只发一个业务写请求，列表刷新请求不计入。
+
+逾期规则：借书时后端以 `Asia/Shanghai` 生成借书时间及其后 30 个日历日的应还时间。应还日期早于当前上海自然日才算逾期，“昨天”稳定计为 1 天，今天到期不逾期。距应还日 0–3 天为 `DUE_SOON`，更远为 `NORMAL`，已逾期为 `OVERDUE`。存在任意逾期未还时拒绝借新书，逾期目标拒绝续借，归还后自动解除。
 
 ### DashboardController (`/dashboard`)
 
@@ -210,10 +217,10 @@ vue/src/
 | book_name | varchar(255) | 书名 |
 | nick_name | varchar(255) | 读者姓名 |
 | lendtime | datetime | 借阅时间 |
-| deadtime | datetime | 应归还时间 |
+| deadtime | datetime, NOT NULL | 应归还时间；每条当前借阅必须存在 |
 | prolong | int | 续借剩余次数 |
 
-约束：`bookwithuser` 使用技术主键 `borrow_id`，并通过唯一索引 `(id, isbn)` 保证同一读者不能重复借同一 ISBN；不同读者可以同时借同一 ISBN 的不同馆藏。
+约束：`bookwithuser` 使用技术主键 `borrow_id`，并通过唯一索引 `(id, isbn)` 保证同一读者不能重复借同一 ISBN；不同读者可以同时借同一 ISBN 的不同馆藏。`deadtime` 为 `NOT NULL`，迁移在 ALTER 前发现 NULL 会 `SIGNAL` 中止，不会在查询层伪造状态。
 
 ## 5. Entity ↔ 数据库字段映射注意事项
 
@@ -262,14 +269,16 @@ docker-compose restart backend # 重启后端
 ./dev.sh verify    # 运行核心流程冒烟测试
 BACKEND_URL=http://localhost:9090 ./verify_circulation_http.py  # 借书/还书/续借事务黑盒验证
 BACKEND_URL=http://localhost:9090 ./verify_inventory_http.py    # 库存数量黑盒验证
+BACKEND_URL=http://localhost:9090 ./verify_overdue_http.py      # 逾期管理与限制黑盒验证
 ```
 
 ### 现有数据库迁移
 ```bash
 mysql -uroot -p springboot-vue < sql/migrations/20260716_inventory_counts.sql
+mysql -uroot -p springboot-vue < sql/migrations/20260716_overdue_management.sql
 ```
 
-迁移会给 `book.isbn` 添加唯一索引，给库存数量添加检查约束，并将 `bookwithuser` 从 `book_name` 主键改为 `borrow_id` 技术主键 + `(id, isbn)` 唯一约束。脚本会在 ALTER 前强制校验重复 ISBN、重复当前借阅、空/孤立 ISBN、库存与当前借阅/未归还记录不一致以及已迁移/部分迁移结构；发现问题会用 `SIGNAL` 中止，不会继续执行结构变更。
+库存迁移会给 `book.isbn` 添加唯一索引，给库存数量添加检查约束，并将 `bookwithuser` 从 `book_name` 主键改为 `borrow_id` 技术主键 + `(id, isbn)` 唯一约束。逾期迁移会先拒绝任意 `deadtime IS NULL` 数据，然后幂等将字段改为 `NOT NULL` 并添加 `idx_bookwithuser_deadtime`。两个脚本均在结构变更前做明确校验。
 
 ### 测试账号
 - 管理员: admin / admin

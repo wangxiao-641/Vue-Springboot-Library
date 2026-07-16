@@ -101,6 +101,7 @@
           <el-table-column prop="bookName" label="书名" />
           <el-table-column prop="lendtime" label="借阅日期" />
           <el-table-column prop="deadtime" label="截至日期" />
+          <el-table-column prop="overdueDays" label="逾期天数" />
         </el-table>
 
       <template #footer>
@@ -254,7 +255,7 @@ export default {
         request.get("/bookwithuser",{
           params:{
             pageNum: "1",
-            pageSize: this.total,
+            pageSize: 100,
             search1: "",
             search2: "",
             search3: this.user.id,
@@ -263,16 +264,15 @@ export default {
           console.log(res)
           this.bookData = res.data.records
           this.number = this.bookData.length;
-          var nowDate = new Date();
           for(let i=0; i< this.number; i++){
             this.isbnArray[i] = this.bookData[i].isbn;
-            let dDate = new Date(this.bookData[i].deadtime);
-            if(dDate < nowDate){
+            if(this.bookData[i].dueStatus === 'OVERDUE'){
               this.outDateBook[this.numOfOutDataBook] = {
                 isbn:this.bookData[i].isbn,
                 bookName : this.bookData[i].bookName,
                 deadtime : this.bookData[i].deadtime,
                 lendtime : this.bookData[i].lendtime,
+                overdueDays: this.bookData[i].overdueDays,
               };
               this.numOfOutDataBook = this.numOfOutDataBook + 1;
             }

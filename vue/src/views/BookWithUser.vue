@@ -19,6 +19,9 @@
             <template #prefix><el-icon class="el-input__icon"><search /></el-icon></template>
           </el-input>
         </el-form-item >
+        <el-form-item v-if="user.role == 1">
+          <el-checkbox v-model="overdueOnly">仅看逾期未还</el-checkbox>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" style="margin-left: 1%" @click="load" size="mini">查询</el-button>
         </el-form-item>
@@ -27,6 +30,14 @@
         </el-form-item>
       </el-form>
     </div>
+    <el-alert
+        v-if="hasOverdue"
+        title="存在逾期未还图书，逾期期间不能借新书或续借该逾期图书，请尽快归还。"
+        type="error"
+        :closable="false"
+        show-icon
+        style="margin-bottom: 12px"
+    />
     <!-- 按钮-->
     <div style="margin: 10px 0;" >
       <el-popconfirm title="确认删除?" @confirm="deleteBatch" v-if="user.role == 1">
@@ -46,18 +57,29 @@
       <el-table-column prop="nickName" label="借阅者" />
       <el-table-column prop="lendtime" label="借阅时间" />
       <el-table-column prop="deadtime" label="最迟归还日期" />
+      <el-table-column label="借阅状态" width="130">
+        <template #default="scope">
+          <el-tag :type="statusTagType(scope.row.dueStatus)">{{ scope.row.dueStatusText }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="逾期天数" width="150">
+        <template #default="scope">
+          <span v-if="scope.row.dueStatus === 'OVERDUE'" class="overdue-text">已逾期 {{ scope.row.overdueDays }} 天</span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="prolong" label="可续借次数" />
       <el-table-column fixed="right" label="操作" >
         <template v-slot="scope">
-          <el-button  size="mini" @click ="handleEdit(scope.row)" v-if="user.role == 1">修改</el-button>
+          <el-button size="mini" @click="handleEdit(scope.row)" v-if="user.role == 1">调整应还日期</el-button>
           <el-popconfirm title="确认删除?" @confirm="handleDelete(scope.row) " v-if="user.role == 1">
             <template #reference>
               <el-button type="danger" size="mini" >删除</el-button>
             </template>
           </el-popconfirm>
-          <el-popconfirm title="确认续借(续借一次延长30天)?" @confirm="handlereProlong(scope.row)" v-if="user.role == 2" :disabled="scope.row.prolong == 0">
+          <el-popconfirm title="确认续借(续借一次延长30天)?" @confirm="handlereProlong(scope.row)" v-if="user.role == 2" :disabled="scope.row.prolong == 0 || scope.row.dueStatus === 'OVERDUE'">
             <template #reference>
-              <el-button type="danger" size="mini" :disabled="scope.row.prolong == 0" >续借</el-button>
+              <el-button type="danger" size="mini" :disabled="scope.row.prolong == 0 || scope.row.dueStatus === 'OVERDUE'" >续借</el-button>
             </template>
           </el-popconfirm>
         </template>
@@ -76,20 +98,19 @@
       >
       </el-pagination>
 
-      <el-dialog v-model="dialogVisible2" title="修改借阅信息" width="30%">
+      <el-dialog v-model="dialogVisible2" title="调整应还日期" width="420px">
         <el-form :model="form" label-width="120px">
-
-          <el-form-item label="图书编号">
-            <el-input style="width: 80%" v-model="form.isbn"></el-input>
+          <el-form-item label="借阅信息">
+            <span>{{ form.nickName }} / {{ form.bookName }}</span>
           </el-form-item>
-          <el-form-item label="图书名称">
-            <el-input style="width: 80%" v-model="form.bookName"></el-input>
-          </el-form-item>
-          <el-form-item label="借阅者">
-            <el-input style="width: 80%" v-model="form.nickName"></el-input>
-          </el-form-item>
-          <el-form-item label="续借次数">
-            <el-input style="width: 80%" v-model="form.prolong"></el-input>
+          <el-form-item label="应还日期" required>
+            <el-date-picker
+                v-model="form.deadtime"
+                type="datetime"
+                value-format="YYYY-MM-DD HH:mm:ss"
+                placeholder="选择应还日期"
+                style="width: 100%"
+            />
           </el-form-item>
         </el-form>
         <template #footer>
@@ -145,6 +166,7 @@ export default {
             search1: this.search1,
             search2: this.search2,
             search3: this.search3,
+            overdueOnly: this.overdueOnly,
           }
         }).then(res =>{
           console.log(res)
@@ -160,6 +182,7 @@ export default {
             search1: this.search1,
             search2: this.search2,
             search3: this.user.id,
+            overdueOnly: false,
           }
         }).then(res =>{
           console.log(res)
@@ -172,6 +195,7 @@ export default {
       this.search1 = ""
       this.search2 = ""
       this.search3 = ""
+      this.overdueOnly = false
       this.load()
     },
     handleDelete(row){
@@ -209,7 +233,15 @@ export default {
       //ES6语法
       //地址,但是？IP与端口？+请求参数
       // this.form?这是自动保存在form中的，虽然显示时没有使用，但是这个对象中是有它的
-        request.post("/bookwithuser",this.form).then(res =>{
+        if (!this.form.deadtime) {
+          ElMessage.warning("请选择应还日期")
+          return
+        }
+        request.put("/bookwithuser/due-date", {
+          operatorId: this.user.id,
+          borrowId: this.form.borrowId,
+          dueDate: this.form.deadtime,
+        }).then(res =>{
           console.log(res)
           if(res.code == 0){
             ElMessage({
@@ -229,12 +261,17 @@ export default {
       this.form = JSON.parse(JSON.stringify(row))
       this.dialogVisible2 = true
     },
+    statusTagType(status){
+      if (status === 'OVERDUE') return 'danger'
+      if (status === 'DUE_SOON') return 'warning'
+      return 'success'
+    },
     handleSizeChange(pageSize){
       this.pageSize = pageSize
       this.load()
     },
     handleCurrentChange(pageNum){
-      this.pageNum = pageNum
+      this.currentPage = pageNum
       this.load()
     },
 
@@ -249,6 +286,7 @@ export default {
       search1:'',
       search2:'',
       search3:'',
+      overdueOnly: false,
       total:10,
       currentPage:1,
       pageSize: 10,
@@ -257,5 +295,17 @@ export default {
       forms:[],
     }
   },
+  computed: {
+    hasOverdue(){
+      return this.tableData.some(item => item.dueStatus === 'OVERDUE')
+    }
+  }
 }
 </script>
+
+<style scoped>
+.overdue-text {
+  color: #f56c6c;
+  font-weight: 600;
+}
+</style>
