@@ -1,5 +1,5 @@
 <template>
-  <el-form :model="form" label-width="100px">
+  <el-form :model="form" label-width="100px" class="book-form themed-form">
     <el-form-item label="图书编号"
       ><el-input v-model="form.isbn"
     /></el-form-item>

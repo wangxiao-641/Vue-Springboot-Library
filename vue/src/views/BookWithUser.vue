@@ -1,5 +1,5 @@
 <template>
-  <div class="page-shell">
+  <div class="page-shell data-page loan-page">
     <PageHeader
       title="当前借阅"
       :description="

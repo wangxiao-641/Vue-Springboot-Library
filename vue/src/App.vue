@@ -1,5 +1,5 @@
 <template>
-  <div style="overflow-y:hidden;overflow-x: hidden">
+  <div class="app-root" :class="`theme-${theme}`">
     <router-view />
 <!--    头部-->
 
@@ -13,8 +13,6 @@
 <script>
 
 
-  export default {
-    name:"App",
-
-  }
+  import { mapState } from 'vuex'
+  export default { name: 'App', computed: { ...mapState(['theme']) } }
 </script>

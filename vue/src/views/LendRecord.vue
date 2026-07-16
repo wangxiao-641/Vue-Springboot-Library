@@ -1,5 +1,5 @@
 <template>
-  <div class="page-shell">
+  <div class="page-shell data-page record-page">
     <PageHeader
       title="借阅记录"
       :description="
@@ -11,7 +11,7 @@
 
     <!-- 搜索-->
     <div class="surface-card toolbar-card">
-      <el-form inline="true" size="small">
+      <el-form :inline="true" size="small">
         <el-form-item label="图书编号">
           <el-input v-model="search1" placeholder="请输入图书编号" clearable>
             <template #prefix

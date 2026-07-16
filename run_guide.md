@@ -318,6 +318,44 @@ curl -s -X POST "http://localhost:9090/circulation/renew" \
 verify_circulation_http.py
 ```
 
+## 14. 一键后端现场演示
+
+服务启动后，在项目根目录执行：
+
+```bash
+./demo_backend_verification.sh
+```
+
+脚本默认访问 `http://localhost:9090`，也支持现场透传管理员配置：
+
+```bash
+BACKEND_URL=http://localhost:9090 \
+ADMIN_USERNAME=admin ADMIN_PASSWORD=123456 \
+./demo_backend_verification.sh
+```
+
+`ADMIN_PASSWORD` 只有在非空时才会透传；显式设置为空字符串时，演示脚本会将其 unset，让四个 Python 脚本继续使用既有的 `admin` / `123456` fallback。
+
+脚本会先请求 `/dashboard` 做健康检查。服务不可用时会输出明确错误并以非零状态退出；健康检查通过后按顺序运行四个既有 Python 黑盒脚本，单项失败不会阻断后续项目，并在末尾输出每项退出码与总 PASS/FAIL：
+
+| 顺序 | 脚本 | 验证内容 | 预期 |
+|---|---|---|---|
+| 1 | `verify_circulation_http.py` | 借书、无库存拒绝、续借、重复续借拒绝、还书、重复还书拒绝 | 6/6 |
+| 2 | `verify_inventory_http.py` | 库存初始化、借还库存、非法总数、合法扩容、并发编辑与重复借阅 | 9/9 |
+| 3 | `verify_overdue_http.py` | 后端生成应还日、逾期调整、借阅/续借限制、筛选、归还解除限制 | 6/6 |
+| 4 | `verify_user_management_http.py` | 新增、字段校验、登录、重复用户名、权限边界、借阅中删除保护、归还后删除 | 7/7 |
+
+四个脚本只通过正式 HTTP API 操作临时测试数据；各自结束时都会验证并清理临时读者、图书、借阅记录和历史记录，不需要直连数据库。演示脚本本身不复制黑盒逻辑，也不写入业务数据。
+
+如需单独确认某一项，可直接运行：
+
+```bash
+BACKEND_URL=http://localhost:9090 ./verify_circulation_http.py
+BACKEND_URL=http://localhost:9090 ./verify_inventory_http.py
+BACKEND_URL=http://localhost:9090 ./verify_overdue_http.py
+BACKEND_URL=http://localhost:9090 ADMIN_USERNAME=admin ADMIN_PASSWORD=123456 ./verify_user_management_http.py
+```
+
 运行环境：
 
 - Python 3 标准库。
@@ -350,7 +388,7 @@ BACKEND_URL=http://localhost:9090 ./verify_circulation_http.py
 
 清理说明：脚本结束时会通过 HTTP 删除本次创建的当前借阅、借阅历史、测试图书和测试读者。若后端中途不可用，脚本会输出 `CLEANUP WARN`，可按输出中的唯一 ISBN 或用户名在系统里定位残留测试数据。
 
-## 14. 库存数量黑盒验证脚本
+## 15. 库存数量黑盒验证脚本
 
 脚本文件：
 
@@ -385,7 +423,7 @@ BACKEND_URL=http://localhost:9090 ./verify_inventory_http.py
 
 清理说明：脚本结束时会通过 HTTP 删除本次创建的当前借阅、借阅历史、测试图书和测试读者。若后端中途不可用，脚本会输出 `CLEANUP WARN`，可按输出中的唯一 ISBN 或用户名在系统里定位残留测试数据。
 
-## 15. 用户管理黑盒验收脚本
+## 16. 用户管理黑盒验收脚本
 
 脚本文件：
 
@@ -427,9 +465,9 @@ DELETE /user/114?operatorId=1
 
 删除只允许 `operatorId` 对应管理员、目标为普通读者且没有 `bookwithuser` 当前借阅。批量删除接口保留路径但明确拒绝，不会绕过未归还检查。项目当前没有统一 token 鉴权，`operatorId` 只能证明数据库中的角色，不能证明请求者持有该账号会话。
 
-## 16. 常见问题
+## 17. 常见问题
 
-### 16.1 Maven 命令无法识别
+### 17.1 Maven 命令无法识别
 
 说明 Maven 没有安装，或者没有配置环境变量。
 
@@ -441,7 +479,7 @@ mvn -version
 
 如果命令失败，需要重新安装 Maven，或将 Maven 的 `bin` 目录加入系统 `Path`。
 
-### 16.2 后端启动失败，提示数据库连接错误
+### 17.2 后端启动失败，提示数据库连接错误
 
 重点检查：
 
@@ -458,7 +496,7 @@ Access denied for user 'root'@'localhost'
 
 通常说明数据库用户名或密码不正确。
 
-### 16.3 后端启动失败，提示 Public Key Retrieval is not allowed
+### 17.3 后端启动失败，提示 Public Key Retrieval is not allowed
 
 可以检查 JDBC URL 中是否包含：
 
@@ -472,7 +510,7 @@ allowPublicKeyRetrieval=true
 spring.datasource.url=jdbc:mysql://localhost:3306/springboot-vue?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=GMT%2b8
 ```
 
-### 16.4 前端 npm install 失败
+### 17.4 前端 npm install 失败
 
 可以尝试：
 
@@ -482,7 +520,7 @@ npm install --legacy-peer-deps
 
 如果依赖版本冲突，优先使用上面的命令。
 
-### 16.5 前端页面能打开，但接口请求失败
+### 17.5 前端页面能打开，但接口请求失败
 
 检查后端是否已经启动。
 
@@ -494,7 +532,7 @@ http://127.0.0.1:9090/
 
 同时检查前端代理配置 `vue/vue.config.js` 中是否代理到正确端口。
 
-### 16.6 登录失败
+### 17.6 登录失败
 
 可能原因：
 
@@ -504,7 +542,7 @@ http://127.0.0.1:9090/
 
 可以先在数据库中确认 `user` 表是否有账号数据。
 
-## 17. 运行成功标志
+## 18. 运行成功标志
 
 当以下条件都满足时，说明项目运行成功：
 
@@ -515,7 +553,7 @@ http://127.0.0.1:9090/
 - 使用管理员或读者账号可以成功登录。
 - 图书列表、借阅状态、借阅记录等页面能正常加载数据。
 
-## 18. 新界面截图与视觉验收
+## 19. 新界面截图与视觉验收
 
 需求变化 5 已将前端统一为 “Library Atlas / 馆藏运营工作台” 视觉系统。改造前后截图索引如下：
 

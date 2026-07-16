@@ -1,5 +1,5 @@
 <template>
-  <div class="page-shell">
+  <div class="page-shell data-page book-page">
     <PageHeader
       :title="user.role == 1 ? '馆藏管理' : '馆藏检索'"
       :description="

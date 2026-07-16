@@ -1,13 +1,18 @@
 <template>
-  <div>
-    <el-card style="width: 40%; margin-left: 120px; margin-top: 40px" >
+  <div class="page-shell profile-page password-page">
+    <PageHeader title="修改密码" description="更新登录凭证，提交后需要重新登录。" />
+    <section class="surface-card security-card">
+      <div class="security-note">
+        <el-icon><Lock /></el-icon>
+        <div><strong>账号安全</strong><span>请使用不易猜测且与其他网站不同的密码。</span></div>
+      </div>
       <el-form
           ref="form"
           :model="form"
           status-icon
           :rules="rules"
           label-width="100px"
-          class="demo-ruleForm"
+          class="security-form themed-form"
       >
         <el-form-item label="老密码" prop="password2">
           <el-input
@@ -31,20 +36,22 @@
           ></el-input>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="submitForm" style="text-align: center">提交</el-button>
-          <el-button @click="resetForm('form')" style="text-align: center">重置</el-button>
+          <el-button type="primary" @click="submitForm">提交修改</el-button>
+          <el-button @click="resetForm('form')">重置</el-button>
         </el-form-item>
       </el-form>
-    </el-card>
+    </section>
   </div>
 </template>
 
 <script>
 import request from "../utils/request";
 import {ElMessage} from "element-plus";
+import PageHeader from "../components/PageHeader";
 
 export default {
   name: "Password",
+  components: { PageHeader },
   data() {
     const validatePass2 = (rule, value, callback) => {
       if (value == '') {

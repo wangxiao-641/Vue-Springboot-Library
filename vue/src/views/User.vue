@@ -1,5 +1,5 @@
 <template>
-  <div class="page-shell">
+  <div class="page-shell data-page user-page">
     <PageHeader
       title="读者管理"
       description="维护读者档案、账号状态与联系信息。"
@@ -10,7 +10,7 @@
       ></PageHeader
     >
     <div class="surface-card toolbar-card">
-      <div style="margin: 10px 0">
+      <div class="toolbar-inner">
         <el-form :inline="true" size="small">
           <el-form-item label="读者编号">
             <el-input v-model="search1" placeholder="请输入读者编号" clearable>

@@ -1,0 +1,1760 @@
+{
+  "generatedAt": "2026-07-16T18:58:26.663Z",
+  "baseURL": "http://localhost:9876",
+  "viewports": [
+    "1440x900",
+    "1280x800",
+    "1024x768",
+    "768x1024"
+  ],
+  "themes": {
+    "atlas": {
+      "pages": {
+        "1440x900:dashboard": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/dashboard",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1440x900:book": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/book?pageNum=1&pageSize=10&search1=&search2=&search3=",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1440x900:user": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=&search3=&search4=",
+              "status": 200
+            },
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=%E5%A4%9A%E9%A3%8E%E6%A0%BC%E9%AA%8C%E6%94%B6%E8%AF%BB%E8%80%85-28308887&search3=&search4=",
+              "status": 200
+            }
+          ],
+          "api200": 2
+        },
+        "1440x900:bookwithuser": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/bookwithuser?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1440x900:lendrecord": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/LendRecord?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1440x900:person": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1440x900:password": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1280x800:dashboard": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/dashboard",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1280x800:book": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/book?pageNum=1&pageSize=10&search1=&search2=&search3=",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1280x800:user": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=&search3=&search4=",
+              "status": 200
+            },
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=%E5%A4%9A%E9%A3%8E%E6%A0%BC%E9%AA%8C%E6%94%B6%E8%AF%BB%E8%80%85-28308887&search3=&search4=",
+              "status": 200
+            }
+          ],
+          "api200": 2
+        },
+        "1280x800:bookwithuser": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/bookwithuser?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1280x800:lendrecord": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/LendRecord?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1280x800:person": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1280x800:password": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1024x768:dashboard": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/dashboard",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1024x768:book": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/book?pageNum=1&pageSize=10&search1=&search2=&search3=",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1024x768:user": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=&search3=&search4=",
+              "status": 200
+            },
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=%E5%A4%9A%E9%A3%8E%E6%A0%BC%E9%AA%8C%E6%94%B6%E8%AF%BB%E8%80%85-28308887&search3=&search4=",
+              "status": 200
+            }
+          ],
+          "api200": 2
+        },
+        "1024x768:bookwithuser": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/bookwithuser?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1024x768:lendrecord": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/LendRecord?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1024x768:person": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1024x768:password": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "768x1024:dashboard": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/dashboard",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "768x1024:book": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/book?pageNum=1&pageSize=10&search1=&search2=&search3=",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "768x1024:user": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=&search3=&search4=",
+              "status": 200
+            },
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=%E5%A4%9A%E9%A3%8E%E6%A0%BC%E9%AA%8C%E6%94%B6%E8%AF%BB%E8%80%85-28308887&search3=&search4=",
+              "status": 200
+            }
+          ],
+          "api200": 2
+        },
+        "768x1024:bookwithuser": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/bookwithuser?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "768x1024:lendrecord": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/LendRecord?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "768x1024:person": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "768x1024:password": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "atlas",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1440x900:register": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "atlas"
+        }
+      },
+      "persistence": {
+        "theme": "atlas",
+        "stored": "atlas",
+        "expected": "atlas"
+      },
+      "switch": {
+        "before": {
+          "url": "http://localhost:9876/dashboard",
+          "theme": "atlas"
+        },
+        "after": {
+          "url": "http://localhost:9876/dashboard",
+          "theme": "academy"
+        },
+        "noRefresh": true
+      },
+      "dialogSmoke": {
+        "book": true,
+        "user": true
+      },
+      "interactions": {
+        "bookwithuserOverdueFilter": true,
+        "lendrecordOverdueFilter": true,
+        "personEdit": true,
+        "passwordReset": true,
+        "registerRoleToggle": true
+      }
+    },
+    "academy": {
+      "pages": {
+        "1440x900:dashboard": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/dashboard",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1440x900:book": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/book?pageNum=1&pageSize=10&search1=&search2=&search3=",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1440x900:user": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=&search3=&search4=",
+              "status": 200
+            },
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=%E5%A4%9A%E9%A3%8E%E6%A0%BC%E9%AA%8C%E6%94%B6%E8%AF%BB%E8%80%85-28308887&search3=&search4=",
+              "status": 200
+            }
+          ],
+          "api200": 2
+        },
+        "1440x900:bookwithuser": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/bookwithuser?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1440x900:lendrecord": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/LendRecord?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1440x900:person": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1440x900:password": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1280x800:dashboard": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/dashboard",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1280x800:book": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/book?pageNum=1&pageSize=10&search1=&search2=&search3=",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1280x800:user": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=&search3=&search4=",
+              "status": 200
+            },
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=%E5%A4%9A%E9%A3%8E%E6%A0%BC%E9%AA%8C%E6%94%B6%E8%AF%BB%E8%80%85-28308887&search3=&search4=",
+              "status": 200
+            }
+          ],
+          "api200": 2
+        },
+        "1280x800:bookwithuser": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/bookwithuser?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1280x800:lendrecord": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/LendRecord?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1280x800:person": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1280x800:password": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1024x768:dashboard": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/dashboard",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1024x768:book": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/book?pageNum=1&pageSize=10&search1=&search2=&search3=",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1024x768:user": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=&search3=&search4=",
+              "status": 200
+            },
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=%E5%A4%9A%E9%A3%8E%E6%A0%BC%E9%AA%8C%E6%94%B6%E8%AF%BB%E8%80%85-28308887&search3=&search4=",
+              "status": 200
+            }
+          ],
+          "api200": 2
+        },
+        "1024x768:bookwithuser": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/bookwithuser?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1024x768:lendrecord": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/LendRecord?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1024x768:person": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1024x768:password": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "768x1024:dashboard": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/dashboard",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "768x1024:book": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/book?pageNum=1&pageSize=10&search1=&search2=&search3=",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "768x1024:user": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=&search3=&search4=",
+              "status": 200
+            },
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=%E5%A4%9A%E9%A3%8E%E6%A0%BC%E9%AA%8C%E6%94%B6%E8%AF%BB%E8%80%85-28308887&search3=&search4=",
+              "status": 200
+            }
+          ],
+          "api200": 2
+        },
+        "768x1024:bookwithuser": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/bookwithuser?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "768x1024:lendrecord": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/LendRecord?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "768x1024:person": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "768x1024:password": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "academy",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1440x900:register": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "academy"
+        }
+      },
+      "persistence": {
+        "theme": "academy",
+        "stored": "academy",
+        "expected": "academy"
+      },
+      "switch": {
+        "before": {
+          "url": "http://localhost:9876/dashboard",
+          "theme": "academy"
+        },
+        "after": {
+          "url": "http://localhost:9876/dashboard",
+          "theme": "atlas"
+        },
+        "noRefresh": true
+      },
+      "dialogSmoke": {
+        "book": true,
+        "user": true
+      },
+      "interactions": {
+        "bookwithuserOverdueFilter": true,
+        "lendrecordOverdueFilter": true,
+        "personEdit": true,
+        "passwordReset": true,
+        "registerRoleToggle": true
+      }
+    },
+    "command": {
+      "pages": {
+        "1440x900:dashboard": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/dashboard",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1440x900:book": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/book?pageNum=1&pageSize=10&search1=&search2=&search3=",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1440x900:user": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=&search3=&search4=",
+              "status": 200
+            },
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=%E5%A4%9A%E9%A3%8E%E6%A0%BC%E9%AA%8C%E6%94%B6%E8%AF%BB%E8%80%85-28308887&search3=&search4=",
+              "status": 200
+            }
+          ],
+          "api200": 2
+        },
+        "1440x900:bookwithuser": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/bookwithuser?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1440x900:lendrecord": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/LendRecord?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1440x900:person": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1440x900:password": {
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "bodyScroll": 1440,
+          "docScroll": 1440,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1280x800:dashboard": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/dashboard",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1280x800:book": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/book?pageNum=1&pageSize=10&search1=&search2=&search3=",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1280x800:user": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=&search3=&search4=",
+              "status": 200
+            },
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=%E5%A4%9A%E9%A3%8E%E6%A0%BC%E9%AA%8C%E6%94%B6%E8%AF%BB%E8%80%85-28308887&search3=&search4=",
+              "status": 200
+            }
+          ],
+          "api200": 2
+        },
+        "1280x800:bookwithuser": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/bookwithuser?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1280x800:lendrecord": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/LendRecord?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1280x800:person": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1280x800:password": {
+          "viewport": {
+            "width": 1280,
+            "height": 800
+          },
+          "bodyScroll": 1280,
+          "docScroll": 1280,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1024x768:dashboard": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/dashboard",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1024x768:book": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/book?pageNum=1&pageSize=10&search1=&search2=&search3=",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1024x768:user": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=&search3=&search4=",
+              "status": 200
+            },
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=%E5%A4%9A%E9%A3%8E%E6%A0%BC%E9%AA%8C%E6%94%B6%E8%AF%BB%E8%80%85-28308887&search3=&search4=",
+              "status": 200
+            }
+          ],
+          "api200": 2
+        },
+        "1024x768:bookwithuser": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/bookwithuser?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1024x768:lendrecord": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/LendRecord?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "1024x768:person": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1024x768:password": {
+          "viewport": {
+            "width": 1024,
+            "height": 768
+          },
+          "bodyScroll": 1024,
+          "docScroll": 1024,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "768x1024:dashboard": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/dashboard",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "768x1024:book": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/book?pageNum=1&pageSize=10&search1=&search2=&search3=",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "768x1024:user": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=&search3=&search4=",
+              "status": 200
+            },
+            {
+              "url": "http://localhost:9876/api/user/usersearch?pageNum=1&pageSize=10&search1=&search2=%E5%A4%9A%E9%A3%8E%E6%A0%BC%E9%AA%8C%E6%94%B6%E8%AF%BB%E8%80%85-28308887&search3=&search4=",
+              "status": 200
+            }
+          ],
+          "api200": 2
+        },
+        "768x1024:bookwithuser": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/bookwithuser?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "768x1024:lendrecord": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [
+            {
+              "url": "http://localhost:9876/api/LendRecord?pageNum=1&pageSize=10&search1=&search2=&search3=&overdueOnly=false",
+              "status": 200
+            }
+          ],
+          "api200": 1
+        },
+        "768x1024:person": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "768x1024:password": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "command",
+          "pageErrors": [],
+          "consoleErrors": [],
+          "apiResponses": [],
+          "api200": 0
+        },
+        "1440x900:register": {
+          "viewport": {
+            "width": 768,
+            "height": 1024
+          },
+          "bodyScroll": 768,
+          "docScroll": 768,
+          "theme": "command"
+        }
+      },
+      "persistence": {
+        "theme": "command",
+        "stored": "command",
+        "expected": "command"
+      },
+      "switch": {
+        "before": {
+          "url": "http://localhost:9876/dashboard",
+          "theme": "command"
+        },
+        "after": {
+          "url": "http://localhost:9876/dashboard",
+          "theme": "atlas"
+        },
+        "noRefresh": true
+      },
+      "dialogSmoke": {
+        "book": true,
+        "user": true
+      },
+      "interactions": {
+        "bookwithuserOverdueFilter": true,
+        "lendrecordOverdueFilter": true,
+        "personEdit": true,
+        "passwordReset": true,
+        "registerRoleToggle": true
+      }
+    }
+  },
+  "notes": [
+    "API status records are captured from /api responses; 200 means transport success."
+  ],
+  "temporaryReader": {
+    "username": "theme_v2_28308887",
+    "nickName": "多风格验收读者-28308887",
+    "create": {
+      "httpStatus": 200,
+      "body": {
+        "code": "0",
+        "msg": "成功",
+        "data": null
+      }
+    },
+    "filters": {
+      "atlas:1440x900": {
+        "httpStatus": 200,
+        "total": 1,
+        "records": [
+          {
+            "id": 156,
+            "username": "theme_v2_28308887",
+            "nickName": "多风格验收读者-28308887"
+          }
+        ]
+      },
+      "atlas:1280x800": {
+        "httpStatus": 200,
+        "total": 1,
+        "records": [
+          {
+            "id": 156,
+            "username": "theme_v2_28308887",
+            "nickName": "多风格验收读者-28308887"
+          }
+        ]
+      },
+      "atlas:1024x768": {
+        "httpStatus": 200,
+        "total": 1,
+        "records": [
+          {
+            "id": 156,
+            "username": "theme_v2_28308887",
+            "nickName": "多风格验收读者-28308887"
+          }
+        ]
+      },
+      "atlas:768x1024": {
+        "httpStatus": 200,
+        "total": 1,
+        "records": [
+          {
+            "id": 156,
+            "username": "theme_v2_28308887",
+            "nickName": "多风格验收读者-28308887"
+          }
+        ]
+      },
+      "academy:1440x900": {
+        "httpStatus": 200,
+        "total": 1,
+        "records": [
+          {
+            "id": 156,
+            "username": "theme_v2_28308887",
+            "nickName": "多风格验收读者-28308887"
+          }
+        ]
+      },
+      "academy:1280x800": {
+        "httpStatus": 200,
+        "total": 1,
+        "records": [
+          {
+            "id": 156,
+            "username": "theme_v2_28308887",
+            "nickName": "多风格验收读者-28308887"
+          }
+        ]
+      },
+      "academy:1024x768": {
+        "httpStatus": 200,
+        "total": 1,
+        "records": [
+          {
+            "id": 156,
+            "username": "theme_v2_28308887",
+            "nickName": "多风格验收读者-28308887"
+          }
+        ]
+      },
+      "academy:768x1024": {
+        "httpStatus": 200,
+        "total": 1,
+        "records": [
+          {
+            "id": 156,
+            "username": "theme_v2_28308887",
+            "nickName": "多风格验收读者-28308887"
+          }
+        ]
+      },
+      "command:1440x900": {
+        "httpStatus": 200,
+        "total": 1,
+        "records": [
+          {
+            "id": 156,
+            "username": "theme_v2_28308887",
+            "nickName": "多风格验收读者-28308887"
+          }
+        ]
+      },
+      "command:1280x800": {
+        "httpStatus": 200,
+        "total": 1,
+        "records": [
+          {
+            "id": 156,
+            "username": "theme_v2_28308887",
+            "nickName": "多风格验收读者-28308887"
+          }
+        ]
+      },
+      "command:1024x768": {
+        "httpStatus": 200,
+        "total": 1,
+        "records": [
+          {
+            "id": 156,
+            "username": "theme_v2_28308887",
+            "nickName": "多风格验收读者-28308887"
+          }
+        ]
+      },
+      "command:768x1024": {
+        "httpStatus": 200,
+        "total": 1,
+        "records": [
+          {
+            "id": 156,
+            "username": "theme_v2_28308887",
+            "nickName": "多风格验收读者-28308887"
+          }
+        ]
+      }
+    },
+    "readerId": 156,
+    "createdSearch": {
+      "httpStatus": 200,
+      "total": 1,
+      "records": [
+        {
+          "id": 156,
+          "username": "theme_v2_28308887",
+          "nickName": "多风格验收读者-28308887"
+        }
+      ]
+    },
+    "cleanup": {
+      "delete": {
+        "httpStatus": 200,
+        "body": {
+          "code": "0",
+          "msg": "成功",
+          "data": null
+        }
+      },
+      "finalSearch": {
+        "httpStatus": 200,
+        "code": "0",
+        "total": 0,
+        "records": []
+      }
+    }
+  },
+  "summary": {
+    "defaultTheme": "academy",
+    "loginUrlAfter": "http://localhost:9876/dashboard",
+    "sessionUser": true,
+    "loginStayedOnPageDuringThemeLoop": true,
+    "consoleErrors": [],
+    "pageErrors": [],
+    "api200Count": 86,
+    "apiNon200": [],
+    "temporaryReaderCleanupPassed": true
+  }
+}

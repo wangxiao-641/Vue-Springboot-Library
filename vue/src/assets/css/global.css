@@ -23,12 +23,50 @@
   --space-5: 20px;
   --space-6: 24px;
 }
+:root, :root[data-theme="academy"] {
+  --theme-bg: #f7f1e8; --theme-surface: #fffdf8; --theme-text: #3b302b;
+  --theme-muted: #8c766b; --theme-line: #e7d8c8; --theme-accent: #b44d3c;
+  --theme-accent-hover: #913b2f; --theme-accent-soft: #f8e8df; --theme-on-accent: #fffaf5;
+  --header-height: 76px; --header-bg: #fffaf3; --header-text: #3b302b;
+  --header-muted: #8c766b; --header-line: #e7d8c8; --nav-bg: #fffaf3;
+  --nav-width: 224px; --content-width: 1180px;
+  --theme-shadow: 0 14px 38px rgba(83, 53, 35, .08);
+}
+:root[data-theme="atlas"] {
+  --theme-bg: #f5f7fa; --theme-surface: #fff; --theme-text: #243b53;
+  --theme-muted: #829ab1; --theme-line: #d9e2ec; --theme-accent: #0f766e;
+  --theme-accent-hover: #0b5f59; --theme-accent-soft: #e6fffa; --theme-on-accent: #fff;
+  --header-height: 72px; --header-bg: #102a43; --header-text: #fff;
+  --header-muted: #b8c7d8; --header-line: #102a43; --nav-bg: #fff;
+  --nav-width: 224px; --theme-shadow: 0 10px 28px rgba(16, 42, 67, .09);
+}
+:root[data-theme="command"] {
+  --theme-bg: #080d1d; --theme-surface: #111a31; --theme-text: #e9edff;
+  --theme-muted: #8c9ac4; --theme-line: #26325a; --theme-accent: #8b7cff;
+  --theme-accent-hover: #7062e6; --theme-accent-soft: #24204f; --theme-on-accent: #fff;
+  --header-height: 68px; --header-bg: #0b1125; --header-text: #f2f4ff;
+  --header-muted: #9ba8d2; --header-line: #26325a; --nav-bg: #0b1125;
+  --nav-width: 72px; --theme-shadow: 0 16px 40px rgba(0, 0, 0, .28);
+}
+:root[data-theme] {
+  --paper: var(--theme-bg); --surface: var(--theme-surface); --line: var(--theme-line);
+  --accent: var(--theme-accent); --accent-strong: var(--theme-accent-hover);
+  --accent-soft: var(--theme-accent-soft);
+  --ink-950: var(--theme-text); --ink-800: var(--theme-text);
+  --ink-600: var(--theme-muted); --ink-400: var(--theme-muted);
+  --el-color-primary: var(--theme-accent);
+  --el-color-primary-light-3: color-mix(in srgb, var(--theme-accent) 72%, white);
+  --el-color-primary-light-5: color-mix(in srgb, var(--theme-accent) 52%, white);
+  --el-color-primary-light-8: var(--theme-accent-soft);
+  --el-color-primary-light-9: var(--theme-accent-soft);
+  --el-color-primary-dark-2: var(--theme-accent-hover);
+}
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body, #app { min-height: 100%; }
 body {
-  color: var(--ink-800);
-  background: var(--paper);
+  color: var(--theme-text);
+  background: var(--theme-bg);
   font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 14px;
   line-height: 1.5;

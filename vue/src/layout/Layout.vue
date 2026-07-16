@@ -1,5 +1,5 @@
 <template>
-  <div class="app-shell">
+  <div class="app-shell" :data-layout="theme">
     <Header />
     <div class="app-body">
       <Aside />
@@ -10,5 +10,6 @@
 <script>
 import Header from "../components/Header";
 import Aside from "../components/Aside";
-export default { name: "Layout", components: { Header, Aside } };
+import { mapState } from 'vuex';
+export default { name: "Layout", components: { Header, Aside }, computed: { ...mapState(['theme']) } };
 </script>

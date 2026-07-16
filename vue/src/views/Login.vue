@@ -1,8 +1,8 @@
 <template>
-  <div class="login-screen">
+  <div class="login-screen" :data-login-theme="theme">
     <section class="login-story">
       <div class="story-brand">
-        <span class="story-mark">L</span> Library Atlas
+        <span class="story-mark">L</span> {{ loginBrand }}
       </div>
       <div class="story-copy">
         <div class="eyebrow light">Knowledge in motion</div>
@@ -15,6 +15,7 @@
       </div>
     </section>
     <section class="login-panel">
+      <div class="login-theme-switch"><ThemeSelector /></div>
       <el-form
         ref="form"
         :model="form"
@@ -22,7 +23,7 @@
         class="login-form"
         @keyup.enter="login"
       >
-        <div class="mobile-brand">Library Atlas</div>
+        <div class="mobile-brand">{{ loginBrand }}</div>
         <div class="login-kicker">欢迎回来</div>
         <h2>登录馆藏工作台</h2>
         <p class="login-hint">请输入账号信息继续访问系统</p>
@@ -75,9 +76,17 @@
 import request from "../utils/request";
 import { ElMessage } from "element-plus";
 import ValidCode from "../components/Validate";
+import ThemeSelector from "../components/ThemeSelector";
+import { mapState } from 'vuex';
 export default {
   name: "Login",
-  components: { ValidCode },
+  components: { ValidCode, ThemeSelector },
+  computed: {
+    ...mapState(['theme']),
+    loginBrand() {
+      return { atlas: 'Library Atlas', academy: '阅见书院', command: 'LIBRARY / CORE' }[this.theme]
+    }
+  },
   data() {
     return {
       validCode: "",
@@ -151,7 +160,7 @@ export default {
   height: 220px;
   left: 18%;
   bottom: -150px;
-  background: #0f766e;
+  background: var(--theme-accent);
   filter: blur(2px);
 }
 .story-brand {
@@ -169,8 +178,8 @@ export default {
   width: 34px;
   height: 34px;
   border-radius: 9px;
-  color: var(--ink-950);
-  background: #8de2d5;
+  color: var(--theme-on-accent);
+  background: var(--theme-accent);
   font-size: 19px;
 }
 .story-copy {
@@ -178,9 +187,7 @@ export default {
   z-index: 1;
   max-width: 620px;
 }
-.eyebrow.light {
-  color: #8de2d5;
-}
+.eyebrow.light { color: var(--theme-accent); }
 .story-copy h1 {
   margin-top: 14px;
   font-size: clamp(44px, 5vw, 68px);
@@ -208,10 +215,12 @@ export default {
   font-size: 14px;
 }
 .login-panel {
+  position: relative;
   display: grid;
   place-items: center;
   padding: 48px;
 }
+.login-theme-switch { position: absolute; top: 24px; right: 30px; z-index: 2; }
 .login-form {
   width: min(390px, 100%);
 }
@@ -292,5 +301,31 @@ export default {
     color: var(--ink-950);
     font-weight: 800;
   }
+}
+.login-screen[data-login-theme="academy"] { background: var(--theme-bg); }
+.login-screen[data-login-theme="academy"] { display: block; padding: 0 24px 56px; }
+.login-screen[data-login-theme="academy"] .login-story { min-height: 310px; margin: 0 auto; padding: 34px max(28px, 6vw); border-radius: 0 0 40px 40px; background: #4e3328; }
+.login-screen[data-login-theme="academy"] .story-copy h1 { font-family: Georgia, "Songti SC", serif; font-size: clamp(36px, 4vw, 54px); }
+.login-screen[data-login-theme="academy"] .login-panel {
+  width: min(680px, calc(100% - 30px)); min-height: auto; margin: -64px auto 0;
+  padding: 44px; border: 1px solid var(--theme-line); border-radius: 24px;
+  background: #fffdf8; box-shadow: var(--theme-shadow);
+}
+.login-screen[data-login-theme="command"] { background: var(--theme-bg); }
+.login-screen[data-login-theme="command"] .login-story {
+  background-color: #080d1d;
+  background-image: linear-gradient(rgba(139,124,255,.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139,124,255,.12) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+.login-screen[data-login-theme="command"] .login-panel { background: #0c1329; }
+.login-screen[data-login-theme="command"] .login-form { color: #e9edff; padding: 28px; border: 1px solid #26325a; background: #111a31; box-shadow: 0 18px 50px rgba(0,0,0,.35); }
+.login-screen[data-login-theme="command"] .login-form h2 { color: #f2f4ff; }
+.login-screen[data-login-theme="command"] .login-hint { color: #9ba8d2; }
+@media (max-width: 900px) { .login-theme-switch { top: 16px; right: 16px; } }
+@media (max-width: 900px) {
+  .login-screen[data-login-theme="academy"] { padding: 0; }
+  .login-screen[data-login-theme="academy"] .login-story { display: none; }
+  .login-screen[data-login-theme="academy"] .login-panel { width: 100%; min-height: 100vh; margin: 0; border: 0; border-radius: 0; }
 }
 </style>

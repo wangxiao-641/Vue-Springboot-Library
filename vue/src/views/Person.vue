@@ -1,20 +1,25 @@
 <template>
-  <div>
-    <el-card style="width: 40%; margin-left: 120px; margin-top: 40px" >
-        <h2 style="padding: 30px">个人信息</h2>
-      <el-form :model="form" ref="form" label-width="80px">
+  <div class="page-shell profile-page person-page">
+    <PageHeader title="个人信息" description="维护账号展示信息与联系方式。" />
+    <section class="surface-card profile-card">
+      <div class="profile-aside">
+        <span class="profile-monogram">{{ (form.nickName || form.username || 'U').slice(0, 1) }}</span>
+        <strong>{{ form.nickName || form.username || '用户' }}</strong>
+        <span>{{ form.role == 1 ? '管理员账号' : '读者账号' }}</span>
+      </div>
+      <el-form :model="form" ref="form" label-width="88px" class="profile-form themed-form">
         <el-form-item label="用户名">
-          <el-input style="width: 80%" v-model="form.username" disabled></el-input>
+          <el-input v-model="form.username" disabled></el-input>
         </el-form-item>
         <el-form-item label="姓名">
-          <el-input style="width: 80%" v-model="form.nickName"></el-input>
+          <el-input v-model="form.nickName"></el-input>
         </el-form-item>
         <el-form-item label="权限">
-            <span v-if="form.role==1" style="margin:5px">管理员</span>
-            <span v-if="form.role==2" style="margin:5px">读者</span>
+            <el-tag v-if="form.role==1">管理员</el-tag>
+            <el-tag v-if="form.role==2" type="info">读者</el-tag>
         </el-form-item>
         <el-form-item label="电话号码">
-          <el-input style="width: 80%" v-model="form.phone"></el-input>
+          <el-input v-model="form.phone"></el-input>
         </el-form-item>
         <el-form-item label="性别">
           <div>
@@ -23,22 +28,24 @@
           </div>
         </el-form-item>
         <el-form-item label="地址">
-          <el-input type="textarea" style="width: 80%" v-model="form.address"></el-input>
+          <el-input type="textarea" :rows="3" v-model="form.address"></el-input>
+        </el-form-item>
+        <el-form-item class="form-actions">
+          <el-button type="primary" @click="update">保存个人信息</el-button>
         </el-form-item>
       </el-form>
-      <div style="text-align: center">
-        <el-button type="primary" @click="update">保存</el-button>
-      </div>
-    </el-card>
+    </section>
   </div>
 </template>
 
 <script>
 import request from "@/utils/request";
 import {ElMessage} from "element-plus";
+import PageHeader from "../components/PageHeader";
 
 export default {
   name: "Person",
+  components: { PageHeader },
   data() {
     return {
       form: {}
@@ -67,26 +74,4 @@ export default {
 }
 </script>
 
-<style>
-.avatar-uploader  {
-  border: 1px dashed #d9d9d9;
-  border-radius: 6px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-}
-.avatar-uploader:hover {
-  border-color: #409EFF;
-}
-
-.avatar {
-  width: 178px;
-  height: 178px;
-  display: block;
-}
-.box-card {
-  width: 60%;
-  margin: auto;
-  padding: 20px;
-}
-</style>
+<style scoped></style>
