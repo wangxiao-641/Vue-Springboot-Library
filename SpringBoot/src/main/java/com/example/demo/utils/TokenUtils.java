@@ -1,11 +1,11 @@
 package com.example.demo.utils;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.json.JSONUtil;
 
 import com.example.demo.entity.User;
 import com.example.demo.mapper.UserMapper;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -16,9 +16,10 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 
-@Slf4j
 @Component
 public class TokenUtils {
+
+    private static final Logger log = LoggerFactory.getLogger(TokenUtils.class);
 
     @Autowired
     private UserMapper userMapper;

@@ -199,7 +199,7 @@ export default {
     handleDelete(id){
       request.delete("user/" + id ).then(res =>{
         console.log(res)
-        if(res.code == 0 ){
+        if(res.code === '0'){
           ElMessage.success("删除成功")
         }
         else
@@ -217,7 +217,7 @@ export default {
       if(this.form.id){
         request.put("/user",this.form).then(res =>{
           console.log(res)
-          if(res.code == 0){
+          if(res.code === '0'){
             ElMessage({
               message: '更新成功',
               type: 'success',
@@ -234,7 +234,7 @@ export default {
       else {
         request.post("/user",this.form).then(res =>{
           console.log(res)
-          if(res.code == 0){
+          if(res.code === '0'){
             ElMessage.success('添加成功')
           }
           else {
@@ -258,7 +258,7 @@ export default {
     },
     saveUser(){
       request.post("/user", this.form3).then(res =>{
-        if(res.code == "0"){
+        if(res.code === '0'){
           ElMessage.success('新增读者成功')
           this.load()
           this.dialogVisible3 = false

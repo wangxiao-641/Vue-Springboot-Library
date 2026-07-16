@@ -17,7 +17,11 @@ request.interceptors.request.use(config => {
     let userJson = sessionStorage.getItem("user")
     if(!userJson)
     {
-        router.push("/login")
+        // 登录和注册请求不拦截，否则会死循环
+        const url = config.url || ''
+        if (url.indexOf('login') === -1 && url.indexOf('register') === -1) {
+            router.push("/login")
+        }
     }
     return config
 }, error => {

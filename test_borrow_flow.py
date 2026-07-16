@@ -152,8 +152,8 @@ def main():
         print("无法创建测试读者，终止测试")
         sys.exit(1)
 
-    # 获取读者 ID（通过查询）
-    resp = api_get(f"/user/usersearch?search2={TEST_USERNAME}")
+    # 获取读者 ID（通过电话号码查询）
+    resp = api_get(f"/user/usersearch?search3=13800000000")
     if resp.get("code") == "0" and resp.get("data", {}).get("records"):
         test_user_id = resp["data"]["records"][0]["id"]
         print(f"  读者 ID: {test_user_id}")
@@ -261,7 +261,7 @@ def main():
         "phone": "13800000001",
         "address": "测试地址2"
     })
-    resp = api_get(f"/user/usersearch?search2={reader2_name}")
+    resp = api_get(f"/user/usersearch?search3=13800000001")
     if resp.get("code") == "0" and resp.get("data", {}).get("records"):
         test_reader2_id = resp["data"]["records"][0]["id"]
     else:

@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -19,13 +20,29 @@ public class BookController {
     BookMapper BookMapper;
 
     @PostMapping
-    public Result<?> save(@RequestBody Book Book){
-        BookMapper.insert(Book);
+    public Result<?> save(@RequestBody Book book){
+        if (book.getTotal() == null || book.getTotal() <= 0) {
+            book.setTotal(1);
+        }
+        book.setAvailable(book.getTotal());
+        book.setBorrownum(0);
+        BookMapper.insert(book);
         return Result.success();
     }
+
     @PutMapping
-    public  Result<?> update(@RequestBody Book Book){
-        BookMapper.updateById(Book);
+    public Result<?> update(@RequestBody Book book){
+        if (book.getTotal() != null) {
+            Book existing = BookMapper.selectById(book.getId());
+            if (existing != null && existing.getTotal() != null && existing.getAvailable() != null) {
+                int currentlyBorrowed = existing.getTotal() - existing.getAvailable();
+                if (book.getTotal() < currentlyBorrowed) {
+                    return Result.error("400", "馆藏总数不能小于当前已借出数量(" + currentlyBorrowed + "册)");
+                }
+                book.setAvailable(book.getTotal() - currentlyBorrowed);
+            }
+        }
+        BookMapper.updateById(book);
         return Result.success();
     }
 
@@ -56,7 +73,7 @@ public class BookController {
         if(StringUtils.isNotBlank(search3)){
             wrappers.like(Book::getAuthor,search3);
         }
-        Page<Book> BookPage =BookMapper.selectPage(new Page<>(pageNum,pageSize), wrappers);
+        Page<Book> BookPage = BookMapper.selectPage(new Page<>(pageNum,pageSize), wrappers);
         return Result.success(BookPage);
     }
 }

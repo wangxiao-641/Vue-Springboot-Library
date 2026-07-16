@@ -86,6 +86,13 @@ public class UserController {
     }
     @PostMapping("/deleteBatch")
     public  Result<?> deleteBatch(@RequestBody List<Integer> ids){
+        for (Integer id : ids) {
+            Integer count = bookWithUserMapper.selectCount(
+                    Wrappers.<BookWithUser>lambdaQuery().eq(BookWithUser::getId, id));
+            if (count != null && count > 0) {
+                return Result.error("-1", "用户ID=" + id + " 有未归还图书，无法删除");
+            }
+        }
         userMapper.deleteBatchIds(ids);
         return Result.success();
     }
