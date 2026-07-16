@@ -35,7 +35,8 @@ SpringBoot/src/main/java/com/example/demo/
 │   └── DashboardController.java           # 展示板统计
 ├── dto/
 │   ├── CirculationRequest.java            # 流通业务请求 {readerId, isbn}
-│   └── DueDateAdjustmentRequest.java      # 应还日期纠正 {operatorId, borrowId, dueDate}
+│   ├── DueDateAdjustmentRequest.java      # 应还日期纠正 {operatorId, borrowId, dueDate}
+│   └── ReaderCreateRequest.java           # 管理员新增读者（含 operatorId）
 ├── entity/
 │   ├── User.java                          # 对应 user 表
 │   ├── Book.java                          # 对应 book 表
@@ -90,6 +91,8 @@ vue/src/
 |------|------|
 | `sql/springboot-vue.sql` | 数据库建表+初始数据 |
 | `sql/migrations/20260716_overdue_management.sql` | 已有数据库的应还日期非空约束与筛选索引迁移 |
+| `sql/migrations/20260716_user_management.sql` | 已有数据库的用户名唯一约束幂等迁移；重复数据 fail-fast |
+| `verify_user_management_http.py` | 管理员新增/删除读者纯 HTTP 黑盒验收 |
 | `SpringBoot/pom.xml` | Maven 依赖 |
 | `vue/vue.config.js` | Vue CLI 配置（含 /api 代理到 localhost:9090） |
 | `docker-compose.yml` | 全栈容器部署 |
@@ -105,11 +108,11 @@ vue/src/
 |------|------|------|------|
 | POST | /user/register | 注册 | body: User |
 | POST | /user/login | 登录 | body: {username, password} |
-| POST | /user | 新增读者 | body: User |
+| POST | /user | 管理员新增普通读者 | body: `{operatorId, username, password, nickName, phone?, sex?, address?, role:2}` |
 | PUT | /user/password | 修改密码 | ?id=&password2= |
 | PUT | /user | 修改用户信息 | body: User |
-| POST | /user/deleteBatch | 批量删除 | body: [id, ...] |
-| DELETE | /user/{id} | 删除单个用户 | path: id |
+| POST | /user/deleteBatch | 批量删除 | 已停用并明确拒绝，避免绕过未归还检查 |
+| DELETE | /user/{id} | 管理员删除普通读者 | `?operatorId=`；拒绝管理员目标和存在当前借阅的读者 |
 | GET | /user | 读者分页查询 | ?pageNum=&pageSize=&search= |
 | GET | /user/usersearch | 读者多条件查询 | ?search1=&search2=&search3=&search4= |
 
@@ -174,7 +177,7 @@ vue/src/
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | id | bigint, PK, AUTO | 用户 ID |
-| username | varchar(255) | 用户名 |
+| username | varchar(255), UNIQUE | 用户名；`uk_user_username` 保证并发新增不会产生重复账号 |
 | nick_name | varchar(255) | 姓名 |
 | password | varchar(255) | 密码 |
 | sex | varchar(1) | 性别 |
@@ -235,6 +238,7 @@ vue/src/
 2. 旧借还书拆分接口仍存在；新页面流程应使用 `/circulation/borrow`、`/circulation/return`、`/circulation/renew` 三个后端事务接口
 3. Token 生成但未在前端请求头中携带，后端无统一鉴权拦截器
 4. `book.status` 仍是列表展示用的汇总状态：`available_count > 0` 时为 1，否则为 0；真实库存以 `total_count` / `available_count` 为准
+5. 用户新增/删除通过 `operatorId` 查询数据库确认管理员，能拒绝普通读者和前端绕过，但因无统一 token 鉴权，不能证明请求发起者实际持有该管理员会话
 
 ## 7. 操作命令
 
@@ -270,15 +274,17 @@ docker-compose restart backend # 重启后端
 BACKEND_URL=http://localhost:9090 ./verify_circulation_http.py  # 借书/还书/续借事务黑盒验证
 BACKEND_URL=http://localhost:9090 ./verify_inventory_http.py    # 库存数量黑盒验证
 BACKEND_URL=http://localhost:9090 ./verify_overdue_http.py      # 逾期管理与限制黑盒验证
+BACKEND_URL=http://localhost:9090 ADMIN_USERNAME=admin ADMIN_PASSWORD=123456 ./verify_user_management_http.py  # 用户管理黑盒验证
 ```
 
 ### 现有数据库迁移
 ```bash
 mysql -uroot -p springboot-vue < sql/migrations/20260716_inventory_counts.sql
 mysql -uroot -p springboot-vue < sql/migrations/20260716_overdue_management.sql
+mysql -uroot -p springboot-vue < sql/migrations/20260716_user_management.sql
 ```
 
-库存迁移会给 `book.isbn` 添加唯一索引，给库存数量添加检查约束，并将 `bookwithuser` 从 `book_name` 主键改为 `borrow_id` 技术主键 + `(id, isbn)` 唯一约束。逾期迁移会先拒绝任意 `deadtime IS NULL` 数据，然后幂等将字段改为 `NOT NULL` 并添加 `idx_bookwithuser_deadtime`。两个脚本均在结构变更前做明确校验。
+库存迁移会给 `book.isbn` 添加唯一索引，给库存数量添加检查约束，并将 `bookwithuser` 从 `book_name` 主键改为 `borrow_id` 技术主键 + `(id, isbn)` 唯一约束。逾期迁移会先拒绝任意 `deadtime IS NULL` 数据，然后幂等将字段改为 `NOT NULL` 并添加 `idx_bookwithuser_deadtime`。用户管理迁移会在 ALTER 前检查重复用户名，发现重复即 `SIGNAL` 中止；数据安全时幂等添加 `uk_user_username`。
 
 ### 测试账号
 - 管理员: admin / admin

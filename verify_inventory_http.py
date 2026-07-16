@@ -10,6 +10,10 @@ import urllib.request
 
 
 BASE_URL = os.environ.get("BACKEND_URL", "http://localhost:9090").rstrip("/")
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORDS = [os.environ.get("ADMIN_PASSWORD", "admin")]
+if "ADMIN_PASSWORD" not in os.environ and "123456" not in ADMIN_PASSWORDS:
+    ADMIN_PASSWORDS.append("123456")
 RUN_ID = str(int(time.time() * 1000))
 READER_A_USERNAME = "inv_reader_a_" + RUN_ID
 READER_B_USERNAME = "inv_reader_b_" + RUN_ID
@@ -20,6 +24,7 @@ BOOK_NAME = "inventory-test-book-" + RUN_ID
 reader_a_id = None
 reader_b_id = None
 book_id = None
+admin_id = None
 
 
 def http_json(method, path, body=None):
@@ -76,8 +81,20 @@ def create_reader(username, nick_name):
     return reader_id
 
 
+def get_admin_id():
+    for password in ADMIN_PASSWORDS:
+        status, resp = http_json("POST", "/user/login", {
+            "username": ADMIN_USERNAME,
+            "password": password,
+        })
+        if status == 200 and ok(resp) and resp.get("data", {}).get("role") == 1:
+            return resp.get("data", {}).get("id")
+    raise AssertionError("administrator login failed; set ADMIN_USERNAME/ADMIN_PASSWORD")
+
+
 def setup():
-    global reader_a_id, reader_b_id
+    global reader_a_id, reader_b_id, admin_id
+    admin_id = get_admin_id()
     reader_a_id = create_reader(READER_A_USERNAME, "Inventory Reader A " + RUN_ID)
     reader_b_id = create_reader(READER_B_USERNAME, "Inventory Reader B " + RUN_ID)
 
@@ -176,7 +193,8 @@ def cleanup():
         failures.append("query/delete forged book {}".format(exc))
     for reader_id in (reader_a_id, reader_b_id):
         if reader_id:
-            _, resp = http_json("DELETE", "/user/{}".format(reader_id))
+            _, resp = http_json("DELETE", "/user/{}?{}".format(
+                reader_id, urllib.parse.urlencode({"operatorId": admin_id})))
             if not ok(resp):
                 failures.append("delete reader {}".format(resp))
 

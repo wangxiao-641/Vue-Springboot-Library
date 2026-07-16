@@ -14,7 +14,10 @@ BASE_URL = os.environ.get("BACKEND_URL", "http://localhost:9090").rstrip("/")
 BUSINESS_ZONE = ZoneInfo("Asia/Shanghai")
 RUN_ID = "{}-{}".format(int(time.time() * 1000), os.getpid())
 READER_USERNAME = "overdue_reader_" + RUN_ID
-ADMIN_USERNAME = "overdue_admin_" + RUN_ID
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORDS = [os.environ.get("ADMIN_PASSWORD", "admin")]
+if "ADMIN_PASSWORD" not in os.environ and "123456" not in ADMIN_PASSWORDS:
+    ADMIN_PASSWORDS.append("123456")
 OVERDUE_ISBN = "OVERDUE-A-" + RUN_ID
 OTHER_ISBN = "OVERDUE-B-" + RUN_ID
 
@@ -110,19 +113,17 @@ def create_book(isbn, name):
 
 def setup():
     global reader_id, admin_id
-    status, response = http_json("POST", "/user/register", {
-        "username": ADMIN_USERNAME,
-        "password": "test123",
-        "nickName": "Overdue Admin " + RUN_ID,
-        "role": 1,
-    })
-    assert_true(status == 200 and code_zero(response), "register admin failed {}".format(response))
-    status, response = http_json("POST", "/user/login", {
-        "username": ADMIN_USERNAME,
-        "password": "test123",
-    })
-    assert_true(status == 200 and code_zero(response), "login admin failed {}".format(response))
-    admin_id = response.get("data", {}).get("id")
+    admin_response = None
+    for password in ADMIN_PASSWORDS:
+        status, response = http_json("POST", "/user/login", {
+            "username": ADMIN_USERNAME,
+            "password": password,
+        })
+        if status == 200 and code_zero(response) and response.get("data", {}).get("role") == 1:
+            admin_response = response
+            break
+    assert_true(admin_response is not None, "administrator login failed; set ADMIN_USERNAME/ADMIN_PASSWORD")
+    admin_id = admin_response.get("data", {}).get("id")
     assert_true(admin_id is not None, "admin id missing")
     status, response = http_json("POST", "/user/register", {
         "username": READER_USERNAME,
@@ -175,13 +176,10 @@ def cleanup():
         if not code_zero(response):
             warnings.append("delete book {} {}".format(isbn, response))
     if reader_id:
-        _, response = http_json("DELETE", "/user/{}".format(reader_id))
+        _, response = http_json("DELETE", "/user/{}?{}".format(
+            reader_id, urllib.parse.urlencode({"operatorId": admin_id})))
         if not code_zero(response):
             warnings.append("delete reader {}".format(response))
-    if admin_id:
-        _, response = http_json("DELETE", "/user/{}".format(admin_id))
-        if not code_zero(response):
-            warnings.append("delete admin {}".format(response))
     if warnings:
         print("CLEANUP WARN - " + "; ".join(warnings))
 

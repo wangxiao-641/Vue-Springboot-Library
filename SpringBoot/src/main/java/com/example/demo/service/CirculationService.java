@@ -160,8 +160,8 @@ public class CirculationService {
     }
 
     private User getReader(Integer readerId) {
-        User reader = userMapper.selectById(readerId);
-        if (reader == null) {
+        User reader = userMapper.selectByIdForUpdate(readerId);
+        if (reader == null || reader.getRole() == null || reader.getRole() != 2) {
             throw new CirculationException("读者不存在");
         }
         return reader;

@@ -9,6 +9,10 @@ import urllib.request
 
 
 BASE_URL = os.environ.get("BACKEND_URL", "http://localhost:9090").rstrip("/")
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORDS = [os.environ.get("ADMIN_PASSWORD", "admin")]
+if "ADMIN_PASSWORD" not in os.environ and "123456" not in ADMIN_PASSWORDS:
+    ADMIN_PASSWORDS.append("123456")
 RUN_ID = str(int(time.time() * 1000))
 READER_USERNAME = "cir_reader_" + RUN_ID
 SECOND_READER_USERNAME = "cir_reader2_" + RUN_ID
@@ -18,6 +22,7 @@ BOOK_NAME = "circulation-test-book-" + RUN_ID
 created_reader_id = None
 created_second_reader_id = None
 created_book_id = None
+admin_id = None
 
 
 def http_json(method, path, body=None):
@@ -115,9 +120,21 @@ def create_reader(username, nick_name):
     return reader_id
 
 
-def setup():
-    global created_reader_id, created_second_reader_id, created_book_id
+def get_admin_id():
+    for password in ADMIN_PASSWORDS:
+        status, resp = http_json("POST", "/user/login", {
+            "username": ADMIN_USERNAME,
+            "password": password,
+        })
+        if status == 200 and expect_code_zero(resp) and resp.get("data", {}).get("role") == 1:
+            return resp.get("data", {}).get("id")
+    raise AssertionError("administrator login failed; set ADMIN_USERNAME/ADMIN_PASSWORD")
 
+
+def setup():
+    global created_reader_id, created_second_reader_id, created_book_id, admin_id
+
+    admin_id = get_admin_id()
     created_reader_id = create_reader(READER_USERNAME, "Circulation Reader " + RUN_ID)
     created_second_reader_id = create_reader(SECOND_READER_USERNAME, "Circulation Reader 2 " + RUN_ID)
 
@@ -175,12 +192,14 @@ def cleanup():
             failures.append("delete book {}".format(resp))
 
     if created_reader_id:
-        _, resp = http_json("DELETE", "/user/{}".format(created_reader_id))
+        _, resp = http_json("DELETE", "/user/{}?{}".format(
+            created_reader_id, urllib.parse.urlencode({"operatorId": admin_id})))
         if not expect_code_zero(resp):
             failures.append("delete reader {}".format(resp))
 
     if created_second_reader_id:
-        _, resp = http_json("DELETE", "/user/{}".format(created_second_reader_id))
+        _, resp = http_json("DELETE", "/user/{}?{}".format(
+            created_second_reader_id, urllib.parse.urlencode({"operatorId": admin_id})))
         if not expect_code_zero(resp):
             failures.append("delete second reader {}".format(resp))
 

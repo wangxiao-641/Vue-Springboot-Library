@@ -65,11 +65,14 @@ mysql -uroot -p < sql/springboot-vue.sql
 ```powershell
 mysql -uroot -p springboot-vue < sql/migrations/20260716_inventory_counts.sql
 mysql -uroot -p springboot-vue < sql/migrations/20260716_overdue_management.sql
+mysql -uroot -p springboot-vue < sql/migrations/20260716_user_management.sql
 ```
 
 库存迁移脚本会为 `book.isbn` 添加唯一索引，为 `book.total_count` / `book.available_count` 添加合法范围约束，并把 `bookwithuser` 从 `book_name` 主键迁移为 `borrow_id` 技术主键 + `(id, isbn)` 唯一约束。执行 ALTER 前会强制校验重复 ISBN、重复/孤立当前借阅、库存与当前借阅/未归还记录一致性以及已迁移/部分迁移结构；发现问题会直接中止并提示需要清理的数据类型。
 
 逾期迁移脚本会先检查 `bookwithuser.deadtime`：发现任意 NULL 当前借阅时使用 `SIGNAL` 明确中止，不执行后续 ALTER；数据完整时将该字段改为 `NOT NULL`，并幂等添加逾期筛选索引。整个脚本可重复执行。新数据库直接导入基线 SQL 时已包含 `NOT NULL` 约束和索引。
+
+用户管理迁移会在任何 ALTER 前检查 `user.username` 重复数据。如有重复会使用 `SIGNAL` 直接中止，不创建索引；数据安全时幂等添加唯一索引 `uk_user_username`，保证并发新增时也不会产生重复账号。
 
 如果迁移报告 `deadtime 为 NULL`，可先定位需要业务纠正的记录：
 
@@ -262,9 +265,10 @@ Content-Type: application/json
 BACKEND_URL=http://localhost:9090 ./verify_circulation_http.py
 BACKEND_URL=http://localhost:9090 ./verify_inventory_http.py
 BACKEND_URL=http://localhost:9090 ./verify_overdue_http.py
+BACKEND_URL=http://localhost:9090 ADMIN_USERNAME=admin ADMIN_PASSWORD=123456 ./verify_user_management_http.py
 ```
 
-`verify_overdue_http.py` 使用唯一的管理员、读者和两本测试图书，通过专用 HTTP 接口将应还日调整为昨天，覆盖全部逾期限制和解除流程。每项输出 `PASS` / `FAIL`，任一失败返回非零退出码；脚本结束时通过 HTTP 归还并删除测试记录、图书和账号。
+`verify_overdue_http.py` 使用已有管理员和唯一的读者、两本测试图书，通过专用 HTTP 接口将应还日调整为昨天，覆盖全部逾期限制和解除流程。每项输出 `PASS` / `FAIL`，任一失败返回非零退出码；脚本结束时通过 HTTP 归还并删除测试记录、图书和读者账号。
 
 ## 12. 借书、还书、续借后端业务接口
 
@@ -381,9 +385,51 @@ BACKEND_URL=http://localhost:9090 ./verify_inventory_http.py
 
 清理说明：脚本结束时会通过 HTTP 删除本次创建的当前借阅、借阅历史、测试图书和测试读者。若后端中途不可用，脚本会输出 `CLEANUP WARN`，可按输出中的唯一 ISBN 或用户名在系统里定位残留测试数据。
 
-## 15. 常见问题
+## 15. 用户管理黑盒验收脚本
 
-### 15.1 Maven 命令无法识别
+脚本文件：
+
+```text
+verify_user_management_http.py
+```
+
+该脚本使用已有管理员账号进行验收，默认尝试 `admin/admin` 和 `admin/123456`；也可显式指定：
+
+```bash
+BACKEND_URL=http://localhost:9090 ADMIN_USERNAME=admin ADMIN_PASSWORD=123456 ./verify_user_management_http.py
+```
+
+脚本只调用 HTTP，使用带时间和进程标识的唯一读者、图书和账号数据，每项输出 `PASS`/`FAIL`，失败返回非零退出码。覆盖：管理员新增普通读者、角色固定为 2、用户名/密码/姓名严格校验、读者登录、同名失败、普通读者 operator/管理员目标/旧批量删除被拒绝、有未归还时删除被拒绝且仍可登录、归还后删除成功且登录失败。脚本结束时通过 HTTP 归还并删除所有测试借阅、图书和读者数据，不创建或删除管理员。
+
+### 用户管理接口
+
+```http
+POST /user
+Content-Type: application/json
+
+{
+  "operatorId": 1,
+  "username": "reader_new",
+  "password": "initial123",
+  "nickName": "新读者",
+  "phone": "13800000000",
+  "sex": "男",
+  "address": "图书馆",
+  "role": 2
+}
+```
+
+`username` 必须是 2–32 位字母/数字/下划线，`password` 必须是 6–64 位非空白字符，`nickName` 必填。请求中的 `role` 只能为 2，后端也会强制写入 2。用户名由数据库 `uk_user_username` 保证并发不重复。
+
+```http
+DELETE /user/114?operatorId=1
+```
+
+删除只允许 `operatorId` 对应管理员、目标为普通读者且没有 `bookwithuser` 当前借阅。批量删除接口保留路径但明确拒绝，不会绕过未归还检查。项目当前没有统一 token 鉴权，`operatorId` 只能证明数据库中的角色，不能证明请求者持有该账号会话。
+
+## 16. 常见问题
+
+### 16.1 Maven 命令无法识别
 
 说明 Maven 没有安装，或者没有配置环境变量。
 
@@ -395,7 +441,7 @@ mvn -version
 
 如果命令失败，需要重新安装 Maven，或将 Maven 的 `bin` 目录加入系统 `Path`。
 
-### 15.2 后端启动失败，提示数据库连接错误
+### 16.2 后端启动失败，提示数据库连接错误
 
 重点检查：
 
@@ -412,7 +458,7 @@ Access denied for user 'root'@'localhost'
 
 通常说明数据库用户名或密码不正确。
 
-### 15.3 后端启动失败，提示 Public Key Retrieval is not allowed
+### 16.3 后端启动失败，提示 Public Key Retrieval is not allowed
 
 可以检查 JDBC URL 中是否包含：
 
@@ -426,7 +472,7 @@ allowPublicKeyRetrieval=true
 spring.datasource.url=jdbc:mysql://localhost:3306/springboot-vue?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=GMT%2b8
 ```
 
-### 15.4 前端 npm install 失败
+### 16.4 前端 npm install 失败
 
 可以尝试：
 
@@ -436,7 +482,7 @@ npm install --legacy-peer-deps
 
 如果依赖版本冲突，优先使用上面的命令。
 
-### 15.5 前端页面能打开，但接口请求失败
+### 16.5 前端页面能打开，但接口请求失败
 
 检查后端是否已经启动。
 
@@ -448,7 +494,7 @@ http://127.0.0.1:9090/
 
 同时检查前端代理配置 `vue/vue.config.js` 中是否代理到正确端口。
 
-### 15.6 登录失败
+### 16.6 登录失败
 
 可能原因：
 
@@ -458,7 +504,7 @@ http://127.0.0.1:9090/
 
 可以先在数据库中确认 `user` 表是否有账号数据。
 
-## 16. 运行成功标志
+## 17. 运行成功标志
 
 当以下条件都满足时，说明项目运行成功：
 
