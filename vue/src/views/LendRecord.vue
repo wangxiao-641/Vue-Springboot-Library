@@ -19,6 +19,9 @@
             <template #prefix><el-icon class="el-input__icon"><search /></el-icon></template>
           </el-input>
         </el-form-item >
+        <el-form-item v-if="user.role == 1">
+          <el-checkbox v-model="overdueOnly">仅看逾期未还</el-checkbox>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" style="margin-left: 1%" @click="load" size="mini">查询</el-button>
         </el-form-item>
@@ -48,6 +51,15 @@
       <el-table-column prop="readerId" label="读者编号" sortable/>
       <el-table-column prop="lendTime" label="借阅时间" sortable/>
       <el-table-column prop="returnTime" label="归还时间" sortable/>
+      <el-table-column prop="deadtime" label="应还日期" />
+      <el-table-column label="到期状态" width="140">
+        <template #default="scope">
+          <el-tag v-if="scope.row.dueStatus" :type="statusTagType(scope.row.dueStatus)">
+            {{ scope.row.dueStatusText }}<span v-if="scope.row.dueStatus === 'OVERDUE'"> {{ scope.row.overdueDays }} 天</span>
+          </el-tag>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="status" label="状态" >
         <template v-slot="scope">
           <el-tag v-if="scope.row.status == 0" type="warning">未归还</el-tag>
@@ -157,7 +169,8 @@ export default defineComponent({
           pageSize: this.pageSize,
           search1: this.search1,
           search2: this.search2,
-          search3: this.search3
+          search3: this.search3,
+          overdueOnly: this.overdueOnly
         }
       }).then(res =>{
         console.log(res)
@@ -207,7 +220,13 @@ export default defineComponent({
       this.search1 = ""
       this.search2 = ""
       this.search3 = ""
+      this.overdueOnly = false
       this.load()
+    },
+    statusTagType(status){
+      if (status === 'OVERDUE') return 'danger'
+      if (status === 'DUE_SOON') return 'warning'
+      return 'success'
     },
     handleEdit(row){
       this.form = JSON.parse(JSON.stringify(row))
@@ -218,7 +237,7 @@ export default defineComponent({
       this.load()
     },
     handleCurrentChange(pageNum){
-      this.pageNum = pageNum
+      this.currentPage = pageNum
       this.load()
     },
     handleDelete(row){
@@ -277,6 +296,7 @@ export default defineComponent({
       search1:'',
       search2:'',
       search3:'',
+      overdueOnly: false,
       total:10,
       currentPage:1,
       pageSize: 10,

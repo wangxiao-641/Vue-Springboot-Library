@@ -1,15 +1,23 @@
 package com.example.demo.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.demo.commom.Result;
-import com.example.demo.entity.BookWithUser;
+import com.example.demo.dto.DueDateAdjustmentRequest;
 import com.example.demo.entity.BookWithUser;
 import com.example.demo.mapper.BookWithUserMapper;
-import org.springframework.web.bind.annotation.*;
+import com.example.demo.service.CirculationException;
+import com.example.demo.service.DueDateAdjustmentService;
+import com.example.demo.service.LoanStatusService;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
@@ -20,81 +28,80 @@ import java.util.Map;
 @RequestMapping("/bookwithuser")
 public class BookWithUserController {
     @Resource
-    BookWithUserMapper BookWithUserMapper;
-//
-//    @PostMapping
-//    public Result<?> save(@RequestBody Book Book){
-//        BookMapper.insert(Book);
-//        return Result.success();
-//    }
+    private BookWithUserMapper bookWithUserMapper;
+    @Resource
+    private LoanStatusService loanStatusService;
+    @Resource
+    private DueDateAdjustmentService dueDateAdjustmentService;
 
-//    //    批量删除
-//    @PostMapping("/deleteBatch")
-//    public  Result<?> deleteBatch(@RequestBody List<Integer> ids){
-//        BookMapper.deleteBatchIds(ids);
-//        return Result.success();
-//    }
-//    @PutMapping
-//    public  Result<?> update(@RequestBody Book Book){
-//        BookMapper.updateById(Book);
-//        return Result.success();
-//    }
-//    @DeleteMapping("/{id}")
-//    public Result<?> delete(@PathVariable Long id){
-//        BookMapper.deleteById(id);
-//        return Result.success();
-//    }
     @PostMapping("/insertNew")
-    public Result<?> insertNew(@RequestBody BookWithUser BookWithUser){
-        BookWithUserMapper.insert(BookWithUser);
-        return Result.success();
+    public Result<?> insertNew() {
+        return Result.error("-1", "当前借阅只能通过借书业务接口创建");
     }
+
     @PostMapping
-    public Result<?> update(@RequestBody BookWithUser BookWithUser){
-        UpdateWrapper<BookWithUser> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq("isbn",BookWithUser.getIsbn()).eq("id",BookWithUser.getId());
-        BookWithUserMapper.update(BookWithUser, updateWrapper);
-        return Result.success();
+    public Result<?> update() {
+        return Result.error("-1", "当前借阅不允许任意字段修改，请使用专用业务接口");
     }
-//删除一条记录
+
+    @PutMapping("/due-date")
+    public Result<?> adjustDueDate(@RequestBody DueDateAdjustmentRequest request) {
+        try {
+            return Result.success(dueDateAdjustmentService.adjust(request));
+        } catch (CirculationException e) {
+            return Result.error("-1", e.getMessage());
+        } catch (Exception e) {
+            return Result.error("-1", "应还日期调整失败");
+        }
+    }
+
     @PostMapping("/deleteRecord")
-    public  Result<?> deleteRecord(@RequestBody BookWithUser BookWithUser){
-        Map<String,Object> map = new HashMap<>();
-        map.put("isbn",BookWithUser.getIsbn());
-        map.put("id",BookWithUser.getId());
-        BookWithUserMapper.deleteByMap(map);
+    public Result<?> deleteRecord(@RequestBody BookWithUser bookWithUser) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("isbn", bookWithUser.getIsbn());
+        map.put("id", bookWithUser.getId());
+        bookWithUserMapper.deleteByMap(map);
         return Result.success();
     }
 
     @PostMapping("/deleteRecords")
-    public Result<?> deleteRecords(@RequestBody List<BookWithUser> BookWithUsers){
-        int len = BookWithUsers.size();
-        for(int i=0;i<len;i++) {
-            BookWithUser curRecord = BookWithUsers.get(i);
-            Map<String,Object> map = new HashMap<>();
-            map.put("isbn",curRecord.getIsbn());
-            map.put("id",curRecord.getId());
-            BookWithUserMapper.deleteByMap(map);
+    public Result<?> deleteRecords(@RequestBody List<BookWithUser> bookWithUsers) {
+        for (BookWithUser currentRecord : bookWithUsers) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("isbn", currentRecord.getIsbn());
+            map.put("id", currentRecord.getId());
+            bookWithUserMapper.deleteByMap(map);
         }
         return Result.success();
     }
+
     @GetMapping
     public Result<?> findPage(@RequestParam(defaultValue = "1") Integer pageNum,
                               @RequestParam(defaultValue = "10") Integer pageSize,
                               @RequestParam(defaultValue = "") String search1,
                               @RequestParam(defaultValue = "") String search2,
-                              @RequestParam(defaultValue = "") String search3){
-        LambdaQueryWrapper<BookWithUser> wrappers = Wrappers.<BookWithUser>lambdaQuery();
-        if(StringUtils.isNotBlank(search1)){
-            wrappers.like(BookWithUser::getIsbn,search1);
+                              @RequestParam(defaultValue = "") String search3,
+                              @RequestParam(defaultValue = "false") Boolean overdueOnly) {
+        LambdaQueryWrapper<BookWithUser> wrapper = Wrappers.<BookWithUser>lambdaQuery();
+        if (StringUtils.isNotBlank(search1)) {
+            wrapper.like(BookWithUser::getIsbn, search1);
         }
-        if(StringUtils.isNotBlank(search2)){
-            wrappers.like(BookWithUser::getBookName,search2);
+        if (StringUtils.isNotBlank(search2)) {
+            wrapper.like(BookWithUser::getBookName, search2);
         }
-        if(StringUtils.isNotBlank(search3)){
-            wrappers.like(BookWithUser::getId,search3);
+        if (StringUtils.isNotBlank(search3)) {
+            try {
+                wrapper.eq(BookWithUser::getId, Integer.valueOf(search3));
+            } catch (NumberFormatException e) {
+                wrapper.like(BookWithUser::getNickName, search3);
+            }
         }
-        Page<BookWithUser> BookPage =BookWithUserMapper.selectPage(new Page<>(pageNum,pageSize), wrappers);
-        return Result.success(BookPage);
+        if (Boolean.TRUE.equals(overdueOnly)) {
+            wrapper.lt(BookWithUser::getDeadtime, loanStatusService.startOfToday());
+        }
+        wrapper.orderByAsc(BookWithUser::getDeadtime).orderByAsc(BookWithUser::getBorrowId);
+        Page<BookWithUser> page = bookWithUserMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
+        page.getRecords().forEach(loanStatusService::applyStatus);
+        return Result.success(page);
     }
 }

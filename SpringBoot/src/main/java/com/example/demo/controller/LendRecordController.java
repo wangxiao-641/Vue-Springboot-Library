@@ -7,10 +7,11 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.demo.commom.Result;
 import com.example.demo.entity.Book;
+import com.example.demo.entity.BookWithUser;
 import com.example.demo.entity.LendRecord;
-import com.example.demo.entity.LendRecord;
-import com.example.demo.entity.LendRecord;
+import com.example.demo.mapper.BookWithUserMapper;
 import com.example.demo.mapper.LendRecordMapper;
+import com.example.demo.service.LoanStatusService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -24,6 +25,10 @@ import java.util.Map;
 public class LendRecordController {
     @Resource
     LendRecordMapper LendRecordMapper;
+    @Resource
+    BookWithUserMapper bookWithUserMapper;
+    @Resource
+    LoanStatusService loanStatusService;
 
     @DeleteMapping("/{isbn}")
     public Result<?> delete(@PathVariable String isbn){
@@ -63,7 +68,8 @@ public class LendRecordController {
                               @RequestParam(defaultValue = "10") Integer pageSize,
                               @RequestParam(defaultValue = "") String search1,
                               @RequestParam(defaultValue = "") String search2,
-                              @RequestParam(defaultValue = "") String search3){
+                              @RequestParam(defaultValue = "") String search3,
+                              @RequestParam(defaultValue = "false") Boolean overdueOnly){
         LambdaQueryWrapper<LendRecord> wrappers = Wrappers.<LendRecord>lambdaQuery();
         if(StringUtils.isNotBlank(search1)){
             wrappers.like(LendRecord::getIsbn,search1);
@@ -74,7 +80,22 @@ public class LendRecordController {
         if(StringUtils.isNotBlank(search3)){
             wrappers.like(LendRecord::getReaderId,search3);
         }
+        if (Boolean.TRUE.equals(overdueOnly)) {
+            wrappers.eq(LendRecord::getStatus, "0")
+                    .apply("exists (select 1 from bookwithuser bwu where bwu.id = lend_record.reader_id and bwu.isbn = lend_record.isbn and bwu.deadtime < {0})", loanStatusService.startOfToday());
+        }
+        wrappers.orderByDesc(LendRecord::getLendTime);
         Page<LendRecord> LendRecordPage =LendRecordMapper.selectPage(new Page<>(pageNum,pageSize), wrappers);
+        for (LendRecord record : LendRecordPage.getRecords()) {
+            BookWithUser current = null;
+            if ("0".equals(record.getStatus())) {
+                current = bookWithUserMapper.selectOne(Wrappers.<BookWithUser>lambdaQuery()
+                        .eq(BookWithUser::getId, record.getReaderId())
+                        .eq(BookWithUser::getIsbn, record.getIsbn())
+                        .last("limit 1"));
+            }
+            loanStatusService.applyStatus(record, current);
+        }
         return Result.success(LendRecordPage);
     }
 

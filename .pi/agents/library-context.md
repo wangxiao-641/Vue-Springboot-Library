@@ -31,7 +31,11 @@ SpringBoot/src/main/java/com/example/demo/
 │   ├── LendRecordController.java          # 借阅记录增删查
 │   ├── LendRecordController1.java         # 还书时更新借阅记录
 │   ├── BookWithUserController.java        # 当前借阅状态管理/续借
+│   ├── CirculationController.java         # 借书/还书/续借事务业务接口
 │   └── DashboardController.java           # 展示板统计
+├── dto/
+│   ├── CirculationRequest.java            # 流通业务请求 {readerId, isbn}
+│   └── DueDateAdjustmentRequest.java      # 应还日期纠正 {operatorId, borrowId, dueDate}
 ├── entity/
 │   ├── User.java                          # 对应 user 表
 │   ├── Book.java                          # 对应 book 表
@@ -42,6 +46,11 @@ SpringBoot/src/main/java/com/example/demo/
 │   ├── BookMapper.java                    # extends BaseMapper<Book>
 │   ├── LendRecordMapper.java              # extends BaseMapper<LendRecord>
 │   └── BookWithUserMapper.java            # extends BaseMapper<BookWithUser>
+├── service/
+│   ├── CirculationService.java            # @Transactional 流通业务逻辑
+│   ├── CirculationException.java          # 流通业务异常
+│   ├── LoanStatusService.java             # 上海时区逾期边界与状态计算
+│   └── DueDateAdjustmentService.java      # 管理员应还日期业务纠正
 └── utils/
     └── TokenUtils.java                    # JWT Token 生成
 ```
@@ -80,6 +89,7 @@ vue/src/
 | 文件 | 作用 |
 |------|------|
 | `sql/springboot-vue.sql` | 数据库建表+初始数据 |
+| `sql/migrations/20260716_overdue_management.sql` | 已有数据库的应还日期非空约束与筛选索引迁移 |
 | `SpringBoot/pom.xml` | Maven 依赖 |
 | `vue/vue.config.js` | Vue CLI 配置（含 /api 代理到 localhost:9090） |
 | `docker-compose.yml` | 全栈容器部署 |
@@ -107,8 +117,8 @@ vue/src/
 
 | 方法 | 路径 | 功能 |
 |------|------|------|
-| POST | /book | 新增图书 |
-| PUT | /book | 更新图书（含借/还书状态变更） |
+| POST | /book | 新增图书（必须提交正整数 totalCount；availableCount 由后端初始化） |
+| PUT | /book | 更新图书基础信息和馆藏总数（availableCount 由后端按已借出数重算） |
 | DELETE | /book/{id} | 删除图书 |
 | POST | /book/deleteBatch | 批量删除 |
 | GET | /book | 分页查询 |
@@ -118,7 +128,7 @@ vue/src/
 | 方法 | 路径 | 功能 |
 |------|------|------|
 | POST | /LendRecord | 新增借阅记录 |
-| GET | /LendRecord | 分页查询 |
+| GET | /LendRecord | 分页查询；`overdueOnly=true` 筛选逾期未还并附带应还日期/状态/逾期天数 |
 | DELETE | /LendRecord/{readerId}/{isbn}/{borrownum} | 删除 |
 | POST | /LendRecord/deleteBatch | 批量删除 |
 | GET | /LendRecord/status | 查询归还状态的记录 |
@@ -133,11 +143,24 @@ vue/src/
 
 | 方法 | 路径 | 功能 |
 |------|------|------|
-| POST | /bookwithuser/insertNew | 新增当前借阅 |
-| GET | /bookwithuser | 分页查询 |
-| POST | /bookwithuser/deleteBatch | 批量删除 |
-| DELETE | /bookwithuser/{id}/{isbn} | 还书后删除 |
-| PUT | /bookwithuser/update | 续借（延长 deadtime + prolong-1） |
+| POST | /bookwithuser/insertNew | 已拒绝直写，当前借阅只能通过借书业务接口创建 |
+| GET | /bookwithuser | 分页查询；返回 `dueStatus`/`dueStatusText`/`overdueDays`，支持 `overdueOnly=true` |
+| POST | /bookwithuser/deleteRecord | 删除一条当前借阅 |
+| POST | /bookwithuser/deleteRecords | 批量删除当前借阅 |
+| POST | /bookwithuser | 已拒绝任意字段直写 |
+| PUT | /bookwithuser/due-date | 管理员专用应还日期纠正；body: `{operatorId, borrowId, dueDate}` |
+
+### CirculationController (`/circulation`)
+
+| 方法 | 路径 | 功能 | 请求体 |
+|------|------|------|--------|
+| POST | /circulation/borrow | 借书事务业务接口 | `{readerId, isbn}` |
+| POST | /circulation/return | 还书事务业务接口 | `{readerId, isbn}` |
+| POST | /circulation/renew | 续借事务业务接口 | `{readerId, isbn}` |
+
+说明：三个接口只接收读者和图书标识。后端统一校验库存、当前借阅、未归还记录和续借次数，并在同一事务内更新 `book`、`bookwithuser`、`lend_record`。前端页面点击借书、还书、续借时只发一个业务写请求，列表刷新请求不计入。
+
+逾期规则：借书时后端以 `Asia/Shanghai` 生成借书时间及其后 30 个日历日的应还时间。应还日期早于当前上海自然日才算逾期，“昨天”稳定计为 1 天，今天到期不逾期。距应还日 0–3 天为 `DUE_SOON`，更远为 `NORMAL`，已逾期为 `OVERDUE`。存在任意逾期未还时拒绝借新书，逾期目标拒绝续借，归还后自动解除。
 
 ### DashboardController (`/dashboard`)
 
@@ -163,7 +186,7 @@ vue/src/
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | id | bigint, PK, AUTO | 图书 ID |
-| isbn | varchar(255) | 图书编号 |
+| isbn | varchar(255), UNIQUE | 图书编号 |
 | name | varchar(255) | 书名 |
 | price | decimal(10,2) | 价格 |
 | author | varchar(255) | 作者 |
@@ -171,6 +194,8 @@ vue/src/
 | create_time | date | 出版时间 |
 | status | varchar(1) | 0=已借出, 1=可借 |
 | borrownum | int | 累计借阅次数 |
+| total_count | int | 馆藏总数 |
+| available_count | int | 可借数量 |
 
 ### lend_record 表
 | 字段 | 类型 | 说明 |
@@ -186,28 +211,30 @@ vue/src/
 ### bookwithuser 表
 | 字段 | 类型 | 说明 |
 |------|------|------|
+| borrow_id | bigint, PK, AUTO | 当前借阅 ID |
 | id | bigint | 读者 ID |
 | isbn | varchar(255) | 图书编号 |
-| book_name | varchar(255), PK | 书名（注意：以此为 PK 有设计问题） |
+| book_name | varchar(255) | 书名 |
 | nick_name | varchar(255) | 读者姓名 |
 | lendtime | datetime | 借阅时间 |
-| deadtime | datetime | 应归还时间 |
+| deadtime | datetime, NOT NULL | 应归还时间；每条当前借阅必须存在 |
 | prolong | int | 续借剩余次数 |
+
+约束：`bookwithuser` 使用技术主键 `borrow_id`，并通过唯一索引 `(id, isbn)` 保证同一读者不能重复借同一 ISBN；不同读者可以同时借同一 ISBN 的不同馆藏。`deadtime` 为 `NOT NULL`，迁移在 ALTER 前发现 NULL 会 `SIGNAL` 中止，不会在查询层伪造状态。
 
 ## 5. Entity ↔ 数据库字段映射注意事项
 
 - User: `nickName`(Java) ↔ `nick_name`(DB), MyBatis-Plus 自动驼峰转换
-- Book: `createTime` ↔ `create_time`, `borrownum` ↔ `borrownum`
+- Book: `createTime` ↔ `create_time`, `totalCount` ↔ `total_count`, `availableCount` ↔ `available_count`, `borrownum` ↔ `borrownum`
 - LendRecord: `readerId` ↔ `reader_id`, `lendTime` ↔ `lend_time`, `returnTime` ↔ `return_time`, `bookname` ↔ `bookname`
-- BookWithUser: `bookName` ↔ `book_name`, `nickName` ↔ `nick_name`
+- BookWithUser: `borrowId` ↔ `borrow_id`, `bookName` ↔ `book_name`, `nickName` ↔ `nick_name`
 
 ## 6. 已知设计问题（不要擅自修复，除非用户要求）
 
-1. Controller 直接调 Mapper，没有 Service 层
-2. 借还书流程靠前端串行调用多个 API，没有事务保证
-3. `bookwithuser` 表用 `book_name` 做主键，同名书、多副本场景有问题
-4. Token 生成但未在前端请求头中携带，后端无统一鉴权拦截器
-5. `book.status` 只支持单本借出/可借，不支持多副本
+1. 多数旧 Controller 仍直接调 Mapper；借书/还书/续借新流程已新增 `CirculationService`
+2. 旧借还书拆分接口仍存在；新页面流程应使用 `/circulation/borrow`、`/circulation/return`、`/circulation/renew` 三个后端事务接口
+3. Token 生成但未在前端请求头中携带，后端无统一鉴权拦截器
+4. `book.status` 仍是列表展示用的汇总状态：`available_count > 0` 时为 1，否则为 0；真实库存以 `total_count` / `available_count` 为准
 
 ## 7. 操作命令
 
@@ -240,7 +267,18 @@ docker-compose restart backend # 重启后端
 ### 验证脚本
 ```bash
 ./dev.sh verify    # 运行核心流程冒烟测试
+BACKEND_URL=http://localhost:9090 ./verify_circulation_http.py  # 借书/还书/续借事务黑盒验证
+BACKEND_URL=http://localhost:9090 ./verify_inventory_http.py    # 库存数量黑盒验证
+BACKEND_URL=http://localhost:9090 ./verify_overdue_http.py      # 逾期管理与限制黑盒验证
 ```
+
+### 现有数据库迁移
+```bash
+mysql -uroot -p springboot-vue < sql/migrations/20260716_inventory_counts.sql
+mysql -uroot -p springboot-vue < sql/migrations/20260716_overdue_management.sql
+```
+
+库存迁移会给 `book.isbn` 添加唯一索引，给库存数量添加检查约束，并将 `bookwithuser` 从 `book_name` 主键改为 `borrow_id` 技术主键 + `(id, isbn)` 唯一约束。逾期迁移会先拒绝任意 `deadtime IS NULL` 数据，然后幂等将字段改为 `NOT NULL` 并添加 `idx_bookwithuser_deadtime`。两个脚本均在结构变更前做明确校验。
 
 ### 测试账号
 - 管理员: admin / admin
