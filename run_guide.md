@@ -514,3 +514,29 @@ http://127.0.0.1:9090/
 - 浏览器能打开登录页面。
 - 使用管理员或读者账号可以成功登录。
 - 图书列表、借阅状态、借阅记录等页面能正常加载数据。
+
+## 18. 新界面截图与视觉验收
+
+需求变化 5 已将前端统一为 “Library Atlas / 馆藏运营工作台” 视觉系统。改造前后截图索引如下：
+
+| 页面 | 改造前 | 改造后 |
+|---|---|---|
+| 登录页 | `images/login.png` | `acceptance/screenshots/after-login.png` |
+| Dashboard | `images/dashboard.png` | `acceptance/screenshots/after-dashboard.png` |
+| 图书管理 | `images/book.png` | `acceptance/screenshots/after-book.png` |
+| 读者管理 | `images/reader.png` | `acceptance/screenshots/after-user.png` |
+
+完整截图方式、1280×800 / 1024×768 响应式检查、主要页面请求和业务回归结果见：
+
+```text
+acceptance/需求5-前端风格验收.md
+acceptance/screenshots/browser-check.json
+```
+
+若修改前端样式后需要重新发布静态资源，必须先重新生成并保留 `vue/dist`，再构建前端镜像：
+
+```bash
+npm run build --prefix vue
+docker compose build frontend
+docker compose up -d frontend
+```

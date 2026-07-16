@@ -1,169 +1,146 @@
 <template>
-  <div>
-    <el-row :gutter="20">
-      <el-col :span="6" v-for="item in cards" :key="item.title">
-        <el-card class="box-card">
-          <div slot="header" class="clearfix">{{ item.title }}</div>
-          <div class="text item">
-            <svg class="icon" aria-hidden="true">
-              <use :xlink:href="item.icon" style="width: 100px"></use>
-            </svg>
-            <span class="text">{{ item.data }}</span>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
-    <div id="myTimer" style="margin-left: 15px;font-weight: 550;"></div>
-    <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
-    <div id="main" style="margin-left: 5px"></div>
+  <div class="page-shell">
+    <PageHeader
+      title="运营概览"
+      description="快速掌握馆藏流通、访问与读者规模。"
+    >
+      <template #actions
+        ><div class="date-chip">
+          <el-icon><Calendar /></el-icon
+          ><span id="myTimer">{{ currentTime }}</span>
+        </div></template
+      >
+    </PageHeader>
+    <div class="metric-grid">
+      <div
+        v-for="item in cards"
+        :key="item.title"
+        class="surface-card metric-card"
+      >
+        <div class="metric-label">{{ item.title }}</div>
+        <div class="metric-value">{{ item.data }}</div>
+        <el-icon class="metric-icon"
+          ><component :is="item.component"
+        /></el-icon>
+      </div>
+    </div>
+    <div class="surface-card chart-card">
+      <div class="chart-heading">
+        <div>
+          <div class="chart-title">馆藏运营数据</div>
+          <div class="muted">当前系统关键指标对比</div>
+        </div>
+        <el-tag type="success" effect="plain">实时数据</el-tag>
+      </div>
+      <div id="main" />
+    </div>
   </div>
 </template>
-
 <script>
-import * as echarts from 'echarts'
-import {ElMessage} from "element-plus";
+import * as echarts from "echarts";
+import { ElMessage } from "element-plus";
 import request from "../utils/request";
-
+import PageHeader from "../components/PageHeader";
 export default {
+  components: { PageHeader },
   data() {
     return {
+      timer: null,
+      chart: null,
+      currentTime: "",
       cards: [
-        { title: '已借阅', data: 100, icon: '#iconlend-record-pro' },
-        { title: '总访问', data: 100, icon: '#iconvisit'   },
-        { title: '图书数', data: 100, icon: '#iconbook-pro' },
-        { title: '用户数', data: 1000, icon: '#iconpopulation' }
+        { title: "借阅记录", data: "—", component: "Tickets" },
+        { title: "累计访问", data: "—", component: "View" },
+        { title: "馆藏图书", data: "—", component: "Collection" },
+        { title: "注册用户", data: "—", component: "UserFilled" },
       ],
-      data:{}
-    }
-  },
-  created() {
-
+    };
   },
   mounted() {
-    this.circleTimer()
-
-    request.get("/dashboard").then(res=>{
-      if(res.code == 0)
-      {
-
-        this.cards[0].data = res.data.lendRecordCount
-        this.cards[1].data = res.data.visitCount
-        this.cards[2].data = res.data.bookCount
-        this.cards[3].data = res.data.userCount
-
-      }
-      else
-      {
-        ElMessage.error(res.msg)
-      }
-
-
-      // 基于准备好的dom，初始化echarts实例
-      var myChart = echarts.init(document.getElementById('main'))
-    console.log(this.cards[0].data)
-      // 绘制图表
-      myChart.setOption({
-        title: {
-          text: '统计'
-        },
-        tooltip: {
-          trigger: 'axis'
-          // axisPointer: {
-          //   type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
-          // }
-        },
-        grid: {
-          left: '3%',
-          right: '4%',
-          bottom: '3%',
-          containLabel: true
-        },
+    this.updateTimer();
+    this.timer = setInterval(this.updateTimer, 1000);
+    request.get("/dashboard").then((res) => {
+      if (res.code == 0) {
+        this.cards[0].data = res.data.lendRecordCount;
+        this.cards[1].data = res.data.visitCount;
+        this.cards[2].data = res.data.bookCount;
+        this.cards[3].data = res.data.userCount;
+        this.renderChart();
+      } else ElMessage.error(res.msg);
+    });
+    window.addEventListener("resize", this.resizeChart);
+  },
+  beforeUnmount() {
+    clearInterval(this.timer);
+    window.removeEventListener("resize", this.resizeChart);
+    if (this.chart) this.chart.dispose();
+  },
+  methods: {
+    updateTimer() {
+      this.currentTime = new Date().toLocaleString("zh-CN", { hour12: false });
+    },
+    resizeChart() {
+      if (this.chart) this.chart.resize();
+    },
+    renderChart() {
+      this.chart = echarts.init(document.getElementById("main"));
+      this.chart.setOption({
+        color: ["#0f766e"],
+        tooltip: { trigger: "axis" },
+        grid: { left: 20, right: 20, top: 35, bottom: 15, containLabel: true },
         xAxis: {
-          type: 'category',
-          data: this.cards.map(item => item.title),
-          axisTick: {
-            alignWithLabel: true
-          }
+          type: "category",
+          data: this.cards.map((i) => i.title),
+          axisLine: { lineStyle: { color: "#d9e2ec" } },
+          axisTick: { show: false },
+          axisLabel: { color: "#486581" },
         },
         yAxis: {
-          type: 'value'
+          type: "value",
+          splitLine: { lineStyle: { color: "#edf2f7" } },
+          axisLabel: { color: "#829ab1" },
         },
         series: [
           {
-            type: 'bar',
-            label: { show: true },
-            barWidth: '25%',
-            data: [
-              {
-                value: this.cards[0].data,
-                itemStyle: { color: '#5470c6' }
+            type: "bar",
+            barMaxWidth: 54,
+            data: this.cards.map((i, n) => ({
+              value: i.data,
+              itemStyle: {
+                color: ["#0f766e", "#2f80a3", "#d28b35", "#6b63a8"][n],
+                borderRadius: [7, 7, 0, 0],
               },
-              {
-                value: this.cards[1].data,
-                itemStyle: { color: '#91cc75' }
-              },
-              {
-                value: this.cards[2].data,
-                itemStyle: { color: '#fac858' }
-              },
-              {
-                value: this.cards[3].data,
-                itemStyle: { color: '#ee6666' }
-              }
-            ]
-          }
-        ]
-      })
-      window.addEventListener('resize', () => {
-        myChart.resize()
-      })
-    })
-  },
-  methods: {
-    circleTimer() {
-      this.getTimer()
-      setInterval(() => {
-        this.getTimer()
-      }, 1000)
+            })),
+            label: {
+              show: true,
+              position: "top",
+              color: "#243b53",
+              fontWeight: 700,
+            },
+          },
+        ],
+      });
     },
-    getTimer() {
-      var d = new Date()
-      var t = d.toLocaleString()
-      document.getElementById('myTimer').innerHTML = t
-    }
-  }
-}
+  },
+};
 </script>
-
 <style scoped>
-.box-card {
-   width: 80%;
-  margin-bottom: 25px;
-  margin-left: 10px;
+.date-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--ink-600);
+  background: #fff;
+  font-size: 13px;
 }
-
-.clearfix {
-  text-align: center;
-  font-size: 15px;
+.date-chip .el-icon {
+  color: var(--accent);
 }
-
-.text {
-  text-align: center;
-  font-size: 24px;
-  font-weight: 700;
-  vertical-align: super;
-}
-
 #main {
   width: 100%;
-  height: 450px;
-  margin-top: 20px;
-}
-
-.icon {
-  width: 50px;
-  height: 50px;
-  padding-top: 5px;
-  padding-right: 10px;
+  height: 410px;
 }
 </style>

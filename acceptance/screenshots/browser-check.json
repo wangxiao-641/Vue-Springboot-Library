@@ -1,0 +1,136 @@
+[
+  {
+    "viewport": "1280x800",
+    "page": "dashboard",
+    "geometry": {
+      "viewport": 1280,
+      "bodyScroll": 1280,
+      "docScroll": 1280,
+      "visibleButtons": 1
+    },
+    "dialogSmoke": null
+  },
+  {
+    "viewport": "1280x800",
+    "page": "book",
+    "geometry": {
+      "viewport": 1280,
+      "bodyScroll": 1280,
+      "docScroll": 1280,
+      "visibleButtons": 37
+    },
+    "dialogSmoke": true
+  },
+  {
+    "viewport": "1280x800",
+    "page": "bookwithuser",
+    "geometry": {
+      "viewport": 1280,
+      "bodyScroll": 1280,
+      "docScroll": 1280,
+      "visibleButtons": 16
+    },
+    "dialogSmoke": null
+  },
+  {
+    "viewport": "1280x800",
+    "page": "lendrecord",
+    "geometry": {
+      "viewport": 1280,
+      "bodyScroll": 1280,
+      "docScroll": 1280,
+      "visibleButtons": 46
+    },
+    "dialogSmoke": null
+  },
+  {
+    "viewport": "1280x800",
+    "page": "user",
+    "geometry": {
+      "viewport": 1280,
+      "bodyScroll": 1280,
+      "docScroll": 1280,
+      "visibleButtons": 10
+    },
+    "dialogSmoke": true
+  },
+  {
+    "viewport": "1280x800",
+    "consoleErrors": [],
+    "apiResponses": [
+      "200 /api/user/login",
+      "200 /api/dashboard",
+      "200 /api/book",
+      "200 /api/bookwithuser",
+      "200 /api/LendRecord",
+      "200 /api/user/usersearch"
+    ]
+  },
+  {
+    "viewport": "1024x768",
+    "page": "dashboard",
+    "geometry": {
+      "viewport": 1024,
+      "bodyScroll": 1024,
+      "docScroll": 1024,
+      "visibleButtons": 1
+    },
+    "dialogSmoke": null
+  },
+  {
+    "viewport": "1024x768",
+    "page": "book",
+    "geometry": {
+      "viewport": 1024,
+      "bodyScroll": 1024,
+      "docScroll": 1024,
+      "visibleButtons": 37
+    },
+    "dialogSmoke": true
+  },
+  {
+    "viewport": "1024x768",
+    "page": "bookwithuser",
+    "geometry": {
+      "viewport": 1024,
+      "bodyScroll": 1024,
+      "docScroll": 1024,
+      "visibleButtons": 16
+    },
+    "dialogSmoke": null
+  },
+  {
+    "viewport": "1024x768",
+    "page": "lendrecord",
+    "geometry": {
+      "viewport": 1024,
+      "bodyScroll": 1024,
+      "docScroll": 1024,
+      "visibleButtons": 46
+    },
+    "dialogSmoke": null
+  },
+  {
+    "viewport": "1024x768",
+    "page": "user",
+    "geometry": {
+      "viewport": 1024,
+      "bodyScroll": 1024,
+      "docScroll": 1024,
+      "visibleButtons": 10
+    },
+    "dialogSmoke": true
+  },
+  {
+    "viewport": "1024x768",
+    "consoleErrors": [],
+    "apiResponses": [
+      "200 /api/user/login",
+      "200 /api/dashboard",
+      "200 /api/book",
+      "200 /api/bookwithuser",
+      "200 /api/LendRecord",
+      "200 /api/user/usersearch"
+    ]
+  }
+]

@@ -1,27 +1,14 @@
 <template>
-  <Header/>
-  <!--    主体-->
-  <div style="display: flex">
-    <!--      侧边栏-->
-    <Aside/>
-    <!--      内容区域-->
-    <router-view style="flex: 1"/>
+  <div class="app-shell">
+    <Header />
+    <div class="app-body">
+      <Aside />
+      <main class="app-main"><router-view /></main>
+    </div>
   </div>
 </template>
-
 <script>
-
 import Header from "../components/Header";
 import Aside from "../components/Aside";
-export default {
-  name: "Layout",
-  components:{
-    Header,
-    Aside
-  }
-}
+export default { name: "Layout", components: { Header, Aside } };
 </script>
-
-<style scoped>
-
-</style>

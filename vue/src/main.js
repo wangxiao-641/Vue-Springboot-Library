@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import '@/assets/css/global.css'
+import '@/assets/css/style.css'
 
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import ElementPlus from 'element-plus'
