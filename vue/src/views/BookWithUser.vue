@@ -108,7 +108,6 @@
 // @ is an alias to /src
 import request from "../utils/request";
 import {ElMessage} from "element-plus";
-import moment from "moment";
 export default {
   created(){
     let userStr = sessionStorage.getItem("user") ||"{}"
@@ -188,11 +187,10 @@ export default {
       })
     },
     handlereProlong(row){
-      var nowDate = new Date(row.deadtime);
-      nowDate.setDate(nowDate.getDate()+30);
-      row.deadtime = moment(nowDate).format("yyyy-MM-DD HH:mm:ss");
-      row.prolong = row.prolong -1;
-      request.post("/bookwithuser",row).then(res =>{
+      request.post("/circulation/renew",{
+        readerId: this.user.id,
+        isbn: row.isbn,
+      }).then(res =>{
         console.log(res)
         if(res.code == 0){
           ElMessage({

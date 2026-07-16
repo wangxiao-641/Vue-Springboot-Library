@@ -210,9 +210,83 @@ VALUES ('reader', '123456', '读者', '13900000000', '女', '学校', 2);
 9. 执行还书。
 10. 再次查看图书状态是否恢复为可借。
 
-## 10. 常见问题
+## 10. 借书、还书、续借后端业务接口
 
-### 10.1 Maven 命令无法识别
+借书、还书、续借已经收敛为三个后端事务接口。前端点击一次业务按钮时，只发送一个业务写请求，列表刷新请求不计入。请求体只传读者和图书标识，不传库存、状态、借阅时间、应还时间或续借后的日期。
+
+### 10.1 借书
+
+```bash
+curl -s -X POST "http://localhost:9090/circulation/borrow" \
+  -H "Content-Type: application/json" \
+  -d '{"readerId":25,"isbn":"TEST-ISBN-001"}'
+```
+
+后端会校验图书是否存在、库存是否充足、读者是否存在、当前是否已借该书，并统一扣减库存、生成当前借阅和借阅历史，应还日期为借书时间后 30 天，续借次数初始化为 1。
+
+### 10.2 还书
+
+```bash
+curl -s -X POST "http://localhost:9090/circulation/return" \
+  -H "Content-Type: application/json" \
+  -d '{"readerId":25,"isbn":"TEST-ISBN-001"}'
+```
+
+后端会校验当前借阅和未归还历史是否存在，并在一个事务内更新历史记录为已归还、删除当前借阅、恢复可借数量。重复还书会失败，库存不会再次增加。
+
+### 10.3 续借
+
+```bash
+curl -s -X POST "http://localhost:9090/circulation/renew" \
+  -H "Content-Type: application/json" \
+  -d '{"readerId":25,"isbn":"TEST-ISBN-001"}'
+```
+
+后端会校验当前借阅和剩余续借次数。最多续借 1 次，成功后应还日期延长 30 天且剩余续借次数变为 0；第二次续借失败，应还日期不变化。
+
+## 11. 借还续黑盒验证脚本
+
+脚本文件：
+
+```text
+verify_circulation_http.py
+```
+
+运行环境：
+
+- Python 3 标准库。
+- 后端服务已启动。
+- 数据库结构包含 `book.total_count` 和 `book.available_count` 字段。
+- 不需要临时联网安装依赖。
+
+默认验证本机 9090：
+
+```bash
+./verify_circulation_http.py
+```
+
+指定后端地址：
+
+```bash
+BACKEND_URL=http://localhost:9090 ./verify_circulation_http.py
+```
+
+脚本只通过 HTTP 调用后端接口，不直接连接或修改数据库。它会自动创建唯一读者和唯一图书，验证 6 个用例并逐项输出 `PASS` 或 `FAIL`；任一用例失败时返回非零退出码。
+
+覆盖用例：
+
+1. 可借图书借阅成功，库存减少，并生成一条当前借阅和历史记录。
+2. 库存为 0 时借阅失败，失败前后库存和记录数量不变。
+3. 首次续借成功，应还日期延长 30 天，剩余续借次数变为 0。
+4. 再次续借失败，应还日期不变。
+5. 正常还书成功，库存恢复，当前借阅消失，历史记录显示已归还。
+6. 重复还书失败，库存不得再次增加。
+
+清理说明：脚本结束时会通过 HTTP 删除本次创建的当前借阅、借阅历史、测试图书和测试读者。若后端中途不可用，脚本会输出 `CLEANUP WARN`，可按输出中的唯一 ISBN 或用户名在系统里定位残留测试数据。
+
+## 12. 常见问题
+
+### 12.1 Maven 命令无法识别
 
 说明 Maven 没有安装，或者没有配置环境变量。
 
@@ -224,7 +298,7 @@ mvn -version
 
 如果命令失败，需要重新安装 Maven，或将 Maven 的 `bin` 目录加入系统 `Path`。
 
-### 10.2 后端启动失败，提示数据库连接错误
+### 12.2 后端启动失败，提示数据库连接错误
 
 重点检查：
 
@@ -241,7 +315,7 @@ Access denied for user 'root'@'localhost'
 
 通常说明数据库用户名或密码不正确。
 
-### 10.3 后端启动失败，提示 Public Key Retrieval is not allowed
+### 12.3 后端启动失败，提示 Public Key Retrieval is not allowed
 
 可以检查 JDBC URL 中是否包含：
 
@@ -255,7 +329,7 @@ allowPublicKeyRetrieval=true
 spring.datasource.url=jdbc:mysql://localhost:3306/springboot-vue?useUnicode=true&characterEncoding=utf-8&allowMultiQueries=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=GMT%2b8
 ```
 
-### 10.4 前端 npm install 失败
+### 12.4 前端 npm install 失败
 
 可以尝试：
 
@@ -297,4 +371,3 @@ http://127.0.0.1:9090/
 - 浏览器能打开登录页面。
 - 使用管理员或读者账号可以成功登录。
 - 图书列表、借阅状态、借阅记录等页面能正常加载数据。
-

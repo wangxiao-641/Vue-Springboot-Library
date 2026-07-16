@@ -79,10 +79,10 @@
               <el-button type="danger" size="mini" >删除</el-button>
             </template>
           </el-popconfirm>
-          <el-button  size="mini" @click ="handlelend(scope.row.id,scope.row.isbn,scope.row.name,scope.row.borrownum,scope.row.availableCount)" v-if="user.role == 2" :disabled="scope.row.availableCount == 0">借阅</el-button>
-          <el-popconfirm title="确认还书?" @confirm="handlereturn(scope.row.id,scope.row.isbn,scope.row.borrownum,scope.row.availableCount)" v-if="user.role == 2" :disabled="scope.row.status == 1">
+          <el-button  size="mini" @click ="handlelend(scope.row.isbn)" v-if="user.role == 2" :disabled="isBookUnavailable(scope.row)">借阅</el-button>
+          <el-popconfirm title="确认还书?" @confirm="handlereturn(scope.row.isbn)" v-if="user.role == 2">
             <template #reference>
-              <el-button type="danger" size="mini" :disabled="(this.isbnArray.indexOf(scope.row.isbn)) == -1 ||scope.row.status == 1" >还书</el-button>
+              <el-button type="danger" size="mini" :disabled="(this.isbnArray.indexOf(scope.row.isbn)) == -1" >还书</el-button>
             </template>
           </el-popconfirm>
         </template>
@@ -200,7 +200,6 @@
 // @ is an alias to /src
 import request from "../utils/request";
 import {ElMessage} from "element-plus";
-import moment from "moment";
 export default {
   created(){
     let userStr = sessionStorage.getItem("user") ||"{}"
@@ -232,6 +231,8 @@ export default {
     load(){
       this.numOfOutDataBook =0;
       this.outDateBook =[];
+      this.number = 0;
+      this.isbnArray = [];
       request.get("/book",{
         params:{
           pageNum: this.currentPage,
@@ -296,18 +297,11 @@ export default {
         this.load()
       })
     },
-    handlereturn(id,isbn,bn,availableCount){
-      // (this.isbnArray.indexOf(scope.row.isbn)) == -1
-      // for(let i=0; i<this.numOfOutDataBook; i++){
-      //   if(this.outDateBook[i].isbn == isbn){
-      //     this.numOfOutDataBook = this.numOfOutDataBook -1;
-      //     console.log("in handlereturn: " + this.numOfOutDataBook);
-      //     break;
-      //   }
-      // }
-      this.form.id = id
-      this.form.availableCount = availableCount + 1
-      request.put("/book",this.form).then(res =>{
+    handlereturn(isbn){
+      request.post("/circulation/return",{
+        readerId: this.user.id,
+        isbn: isbn,
+      }).then(res =>{
         console.log(res)
         if(res.code == 0){
           ElMessage({
@@ -318,69 +312,14 @@ export default {
         else {
           ElMessage.error(res.msg)
         }
-      //
-        this.form3.isbn = isbn
-        this.form3.readerId = this.user.id
-        let endDate = moment(new Date()).format("yyyy-MM-DD HH:mm:ss")
-        this.form3.returnTime = endDate
-        this.form3.status = "1"
-        console.log(bn)
-        this.form3.borrownum = bn
-        request.put("/LendRecord1/",this.form3).then(res =>{
-          console.log(res)
-          let form3 ={};
-          form3.isbn = isbn;
-          form3.bookName = name;
-          form3.nickName = this.user.username;
-          form3.id = this.user.id;
-          form3.lendtime = endDate;
-          form3.deadtime = endDate;
-          form3.prolong  = 1;
-          request.post("/bookwithuser/deleteRecord",form3).then(res =>{
-            console.log(res)
-            this.load()
-          })
-
-        })
-      //
+        this.load()
       })
-      // this.form3.isbn = isbn
-      // this.form3.readerId = this.user.id
-      // let endDate = moment(new Date()).format("yyyy-MM-DD HH:mm:ss")
-      // this.form3.returnTime = endDate
-      // this.form3.status = "1"
-      // console.log(bn)
-      // this.form3.borrownum = bn
-      // request.put("/LendRecord1/",this.form3).then(res =>{
-      //   console.log(res)
-      // })
-      // let form3 ={};
-      // form3.isbn = isbn;
-      // form3.bookName = name;
-      // form3.nickName = this.user.username;
-      // form3.id = this.user.id;
-      // form3.lendtime = endDate;
-      // form3.deadtime = endDate;
-      // form3.prolong  = 1;
-      // request.post("/bookwithuser/deleteRecord",form3).then(res =>{
-      //   console.log(res)
-      //   this.load()
-      // })
     },
-    handlelend(id,isbn,name,bn,availableCount){
-      if(this.number ==5){
-        ElMessage.warning("您不能再借阅更多的书籍了")
-        return;
-      }
-      if(this.numOfOutDataBook !=0){
-        ElMessage.warning("在您归还逾期书籍前不能再借阅书籍")
-        return;
-      }
-      this.form.id = id
-      this.form.borrownum = bn+1
-      this.form.availableCount = availableCount - 1
-      console.log(bn)
-      request.put("/book",this.form).then(res =>{
+    handlelend(isbn){
+      request.post("/circulation/borrow",{
+        readerId: this.user.id,
+        isbn: isbn,
+      }).then(res =>{
         console.log(res)
         if(res.code == 0){
           ElMessage({
@@ -391,37 +330,14 @@ export default {
         else {
           ElMessage.error(res.msg)
         }
-      })
-
-      this.form2.status = "0"
-      this.form2.isbn = isbn
-      this.form2.bookname = name
-      this.form2.readerId = this.user.id
-      this.form2.borrownum = bn+1
-      console.log(this.form2.borrownum)
-      console.log(this.user)
-      let startDate = moment(new Date()).format("yyyy-MM-DD HH:mm:ss");
-      this.form2.lendTime = startDate
-      console.log(this.user)
-      request.post("/LendRecord",this.form2).then(res =>{
-        console.log(res)
-        this.load();
-
-      })
-      let form3 ={};
-      form3.isbn = isbn;
-      form3.bookName = name;
-      form3.nickName = this.user.username;
-      form3.id = this.user.id;
-      form3.lendtime = startDate;
-      let nowDate = new Date(startDate);
-      nowDate.setDate(nowDate.getDate()+30);
-      form3.deadtime = moment(nowDate).format("yyyy-MM-DD HH:mm:ss");
-      form3.prolong  = 1;
-      request.post("/bookwithuser/insertNew",form3).then(res =>{
-        console.log(res)
         this.load()
       })
+    },
+    isBookUnavailable(row){
+      if(row.availableCount !== null && row.availableCount !== undefined){
+        return row.availableCount == 0
+      }
+      return row.status == 0
     },
     add(){
       this.dialogVisible= true

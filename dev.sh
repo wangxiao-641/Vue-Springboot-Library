@@ -252,7 +252,12 @@ for r in records:
 
     # ---- 6. 查询图书（读者可查） ----
     info "6. 查询图书列表"
-    resp=$(curl -s "$base/book?pageNum=1&pageSize=5&search=冒烟测试" 2>/dev/null)
+    resp=$(curl -s --get "$base/book" \
+        --data-urlencode "pageNum=1" \
+        --data-urlencode "pageSize=5" \
+        --data-urlencode "search1=" \
+        --data-urlencode "search2=冒烟测试图书" \
+        --data-urlencode "search3=" 2>/dev/null)
     if echo "$resp" | grep -q '"code":"0"'; then
         local count=$(echo "$resp" | python3 -c "import sys,json; print(json.load(sys.stdin).get('data',{}).get('total',0))" 2>/dev/null || echo 0)
         if [ "$count" -ge 1 ]; then
